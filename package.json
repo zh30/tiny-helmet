@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
-    "dev": "rspack serve",
-    "build": "rspack build"
+    "dev": "rspack build --watch",
+    "build": "rspack build --mode production"
   },
   "keywords": [],
   "author": "",
@@ -16,16 +16,16 @@
   "devDependencies": {
     "@rspack/cli": "^1.0.8",
     "@rspack/core": "^1.0.8",
-    "@types/chrome": "^0.0.272",
+    "@types/react": "^18.3.10",
+    "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
+    "chrome-types": "^0.1.307",
     "css-loader": "^7.1.2",
     "postcss": "^8.4.47",
     "postcss-loader": "^8.1.1",
     "tailwindcss": "^3.4.13",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.6.2",
-    "@types/react": "^18.3.10",
-    "@types/react-dom": "^18.3.0"
+    "typescript": "^5.6.2"
   },
   "dependencies": {
     "react": "^18.3.1",

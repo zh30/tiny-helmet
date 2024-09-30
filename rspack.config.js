@@ -7,12 +7,14 @@ const rspack = require('@rspack/core');
 module.exports = (env, argv) => defineConfig({
   entry: {
     popup: './src/popup/popup.tsx',
+    sidePanel: './src/sidePanel/sidePanel.tsx',
     background: './src/scripts/background.ts',
     contentScript: './src/scripts/contentScript.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
+    clean: true,
   },
   resolve: {
     extensions: ['.ts', '.js', 'tsx'],
@@ -63,24 +65,23 @@ module.exports = (env, argv) => defineConfig({
       chunks: ['popup'],
       minify: true,
     }),
+    new rspack.HtmlRspackPlugin({
+      template: './src/sidePanel/sidePanel.html',
+      filename: 'sidePanel.html',
+      chunks: ['sidePanel'],
+      minify: true,
+    }),
     new rspack.CopyRspackPlugin({
       patterns: [
-        // { from: 'public', to: 'public' },
+        { from: 'public', to: 'public' },
         { from: 'src/manifest.json', to: 'manifest.json' },
       ],
     }),
   ],
   mode: argv.mode,
   devtool: argv.mode === 'development' ? 'inline-source-map' : false,
-  devServer: {
-    static: {
-      directory: path.join(__dirname, 'dist'),
-    },
-    port: 8080,
-    compress: true,
-    hot: true,
-    devMiddleware: {
-      writeToDisk: true,
-    },
+  optimization: {
+    // minimize: argv.mode === 'production',
+    minimize: true,
   },
 });

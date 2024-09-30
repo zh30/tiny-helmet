@@ -1,10 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "TypeScript Chrome Extension",
+  "name": "TinyHelmet",
   "version": "1.0",
-  "description": "A Chrome extension built using TypeScript.",
+  "description": "A lightweight and efficient browser extension development framework that simplifies and accelerates your plugin creation process.",
+  "minimum_chrome_version": "120",
+  "icons": {
+    "16": "public/icon16.png",
+    "32": "public/icon32.png",
+    "48": "public/icon48.png",
+    "128": "public/icon128.png"
+  },
   "action": {
-    "default_popup": "popup.html"
+    // "default_popup": "popup.html",
+    // "default_icon": {
+    //   "16": "public/icon16.png",
+    //   "32": "public/icon32.png",
+    //   "48": "public/icon48.png",
+    //   "128": "public/icon128.png"
+    // }
+    "default_title": "Click to open panel"
+  },
+  "side_panel": {
+    "default_path": "sidePanel.html"
   },
   "background": {
     "service_worker": "background.js"
@@ -20,6 +37,10 @@
     }
   ],
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "sidePanel"
   ]
 }
