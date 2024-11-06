@@ -26,7 +26,6 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 });
 
 chrome.action.onClicked.addListener((tab) => {
-  console.info("action.onClicked", tab.url);
   chrome.sidePanel.setPanelBehavior({
     openPanelOnActionClick: true,
   }).catch((error) => {
