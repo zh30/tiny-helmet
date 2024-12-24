@@ -16,23 +16,23 @@
   ],
   "author": "zhanghe.dev",
   "license": "MIT",
-  "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee",
+  "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf",
   "devDependencies": {
-    "@rspack/cli": "^1.0.14",
-    "@rspack/core": "^1.0.14",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@rspack/cli": "^1.1.8",
+    "@rspack/core": "^1.1.8",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
     "autoprefixer": "^10.4.20",
-    "chrome-types": "^0.1.316",
+    "chrome-types": "^0.1.327",
     "css-loader": "^7.1.2",
-    "postcss": "^8.4.47",
+    "postcss": "^8.4.49",
     "postcss-loader": "^8.1.1",
-    "tailwindcss": "^3.4.14",
+    "tailwindcss": "^3.4.17",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }
