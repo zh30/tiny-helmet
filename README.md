@@ -12,6 +12,7 @@ A modern Chrome extension scaffold powered by Rspack, React 19, Tailwind CSS v4,
 ## Project layout
 
 - `src/entries/` — MV3 entrypoints for background, content script, popup, and side panel UIs.
+- `src/entries/content/` — React-powered content script that mounts inside a Shadow DOM with Tailwind styling.
 - `src/shared/` — Reusable configuration, hooks, providers, state, and shadcn-style UI primitives.
 - `src/styles/` — Tailwind 4 design tokens and layer definitions.
 - `_locales/` & `public/` — i18n resources and static assets copied to the build.
@@ -44,6 +45,13 @@ A modern Chrome extension scaffold powered by Rspack, React 19, Tailwind CSS v4,
 - Prefer co-locating tests near shared logic (`@/shared`) to validate hooks, stores, and shadcn primitives.
 - Before opening a PR, run `pnpm typecheck`, `pnpm check`, and `pnpm test` (or `pnpm test:coverage` when you need a report for reviewers).
 - When tests require additional Chrome APIs, extend the shared stub instead of mocking per file to keep behaviour consistent.
+
+## Content script UI
+
+- The content script (`src/entries/content`) mounts a React tree into a Shadow DOM host so Tailwind utilities stay isolated from the page.
+- `contentScript.css` is shipped as a web-accessible resource; the runtime fetches it via `chrome.runtime.getURL(...)` and injects it into the Shadow DOM.
+- Theme data (`data-theme` and `data-force-theme`) continues to live on `document.documentElement`, so background, popup, and side panel stay in sync with content script preferences.
+- If you add more UI, keep it inside the existing React root and reuse shadcn primitives or Tailwind classes for consistent styling.
 
 ## Next steps
 

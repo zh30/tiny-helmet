@@ -47,7 +47,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "public/*"
+        "public/*",
+        "contentScript.css"
       ],
       "matches": [
         "<all_urls>"
