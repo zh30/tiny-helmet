@@ -39,33 +39,34 @@ describe('parseUrl', () => {
 
 describe('Chrome runtime helpers', () => {
   const chromeGlobal = globalThis as typeof globalThis & {
-    chrome?: {
-      runtime?: unknown;
-      sidePanel?: unknown;
-    };
+    chrome?: typeof chrome;
   };
 
-  let originalChrome: typeof chromeGlobal.chrome;
+  let originalChrome: typeof chrome | undefined;
 
   beforeEach(() => {
     originalChrome = chromeGlobal.chrome;
   });
 
   afterEach(() => {
-    chromeGlobal.chrome = originalChrome;
+    if (originalChrome) {
+      chromeGlobal.chrome = originalChrome;
+    } else {
+      Reflect.deleteProperty(chromeGlobal, 'chrome');
+    }
   });
 
   it('returns true when chrome.runtime is available', () => {
     chromeGlobal.chrome = {
       ...(originalChrome ?? {}),
       runtime: {},
-    };
+    } as unknown as typeof chrome;
 
     expect(isChromeRuntimeAvailable()).toBe(true);
   });
 
   it('returns false when chrome runtime is missing', () => {
-    chromeGlobal.chrome = undefined;
+    Reflect.deleteProperty(chromeGlobal, 'chrome');
 
     expect(isChromeRuntimeAvailable()).toBe(false);
   });
@@ -75,7 +76,7 @@ describe('Chrome runtime helpers', () => {
       ...(originalChrome ?? {}),
       runtime: {},
       sidePanel: {},
-    };
+    } as unknown as typeof chrome;
 
     expect(isSidePanelSupported()).toBe(true);
   });

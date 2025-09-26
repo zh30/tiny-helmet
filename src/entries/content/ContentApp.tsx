@@ -3,25 +3,13 @@ import {
   extensionConfig,
   isHostAllowed,
   type ExtensionSettings,
-  type ThemePreference,
 } from '@/shared/config/extension';
 import { parseUrl } from '@/shared/lib/utils';
 import { getMessage } from '@/shared/platform/i18n';
 import { loadSettings, subscribeToSettings } from '@/shared/platform/storage';
+import { useThemeSync } from '@/shared/hooks/useThemeSync';
 
 const PAGE_FLAG = 'data-tiny-helmet';
-
-function applyThemePreference(preference: ThemePreference) {
-  const root = document.documentElement;
-  root.setAttribute(PAGE_FLAG, 'ready');
-  root.dataset.theme = preference;
-
-  if (preference === 'system') {
-    root.removeAttribute('data-force-theme');
-  } else {
-    root.setAttribute('data-force-theme', preference);
-  }
-}
 
 type ContentState = {
   status: 'loading' | 'ready';
@@ -36,7 +24,7 @@ const OPEN_ARIA_LABEL = getMessage(
   'Open Tiny Helmet side panel',
 );
 
-export function ContentApp() {
+export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
   const url = React.useMemo(() => parseUrl(window.location.href), []);
   const hostname = url?.hostname.toLowerCase() ?? null;
   const [{ status, settings, isAllowed }, setState] = React.useState<ContentState>(
@@ -63,15 +51,12 @@ export function ContentApp() {
         return;
       }
 
-      applyThemePreference(nextSettings.theme);
-
       const allowed =
         isHostAllowed(hostname) || nextSettings.pinnedHosts.includes(hostname);
 
       setState({ status: 'ready', settings: nextSettings, isAllowed: allowed });
 
       unsub = subscribeToSettings((incoming) => {
-        applyThemePreference(incoming.theme);
         const allowedHost =
           isHostAllowed(hostname) || incoming.pinnedHosts.includes(hostname);
         setState({ status: 'ready', settings: incoming, isAllowed: allowedHost });
@@ -90,12 +75,14 @@ export function ContentApp() {
   }, [hostname]);
 
   React.useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute(PAGE_FLAG, 'ready');
     return () => {
-      document.documentElement.removeAttribute(PAGE_FLAG);
-      document.documentElement.removeAttribute('data-force-theme');
-      delete document.documentElement.dataset.theme;
+      root.removeAttribute(PAGE_FLAG);
     };
   }, []);
+
+  useThemeSync(settings.theme ?? 'system', themeTarget);
 
   const handleOpenSidePanel = React.useCallback(() => {
     if (!chrome.runtime?.sendMessage) {

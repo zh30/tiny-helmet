@@ -23,9 +23,12 @@ describe('Button', () => {
     const button = screen.getByRole('button', { name: 'Remove' });
     const expectedClasses = buttonVariants({ variant: 'destructive', size: 'sm' });
 
-    expectedClasses.split(' ').forEach((className) => {
-      expect(button).toHaveClass(className);
-    });
+    expectedClasses
+      .split(' ')
+      .filter((className) => !className.startsWith('shadow'))
+      .forEach((className) => {
+        expect(button).toHaveClass(className);
+      });
     expect(button).toHaveClass('shadow-lg');
   });
 

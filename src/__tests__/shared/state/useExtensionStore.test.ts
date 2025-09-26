@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { emitChromeStorageChange } from '@/__tests__/setup/test-setup';
-import { extensionConfig } from '@/shared/config/extension';
+import { extensionConfig, SETTINGS_STORAGE_KEY } from '@/shared/config/extension';
 import * as storage from '@/shared/platform/storage';
 import { ensureExtensionHydrated, useExtensionStore } from '@/shared/state/useExtensionStore';
 
@@ -10,9 +10,9 @@ vi.mock('@/shared/platform/storage', async (importOriginal) => {
 
   return {
     ...actual,
-    loadSettings: vi.fn(async () => actual.extensionConfig.defaultSettings),
-    saveSettings: vi.fn(async () => actual.extensionConfig.defaultSettings),
-    subscribeToSettings: vi.fn(() => vi.fn()),
+    loadSettings: vi.fn(async () => extensionConfig.defaultSettings),
+    saveSettings: vi.fn(async () => extensionConfig.defaultSettings),
+    subscribeToSettings: vi.fn((callback) => actual.subscribeToSettings(callback)),
   } satisfies typeof storage;
 });
 
@@ -80,7 +80,7 @@ describe('useExtensionStore', () => {
 
     emitChromeStorageChange(
       {
-        [storage.SETTINGS_STORAGE_KEY]: {
+        [SETTINGS_STORAGE_KEY]: {
           newValue: {
             ...extensionConfig.defaultSettings,
             theme: 'dark',

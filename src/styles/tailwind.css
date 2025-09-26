@@ -24,7 +24,8 @@
     --radius: 0.65rem;
   }
 
-  .dark {
+  .dark,
+  [data-theme='dark'] {
     --background: 224 71% 4%;
     --foreground: 210 20% 98%;
     --card: 224 71% 6%;

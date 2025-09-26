@@ -12,7 +12,7 @@ vi.mock('@/shared/platform/storage', async (importOriginal) => {
 
   return {
     ...actual,
-    loadSettings: vi.fn(async () => actual.extensionConfig.defaultSettings),
+    loadSettings: vi.fn(async () => extensionConfig.defaultSettings),
     subscribeToSettings: vi.fn(() => vi.fn()),
   } satisfies typeof storage;
 });
@@ -34,9 +34,13 @@ const mockedStorage = storage as unknown as {
 const mockedParseUrl = utils.parseUrl as MockedFunction<typeof utils.parseUrl>;
 
 describe('ContentApp', () => {
+  let themeTarget: HTMLDivElement;
+
   beforeEach(() => {
     mockedStorage.loadSettings.mockResolvedValue(extensionConfig.defaultSettings);
     mockedParseUrl.mockReturnValue(new URL('https://localhost/'));
+    themeTarget = document.createElement('div');
+    document.body.appendChild(themeTarget);
   });
 
   afterEach(() => {
@@ -44,10 +48,11 @@ describe('ContentApp', () => {
     mockedStorage.subscribeToSettings.mockClear();
     mockedParseUrl.mockReset();
     document.getElementById('tiny-helmet-content-host')?.remove();
+    themeTarget.remove();
   });
 
   it('renders the side panel trigger for allowed hosts', async () => {
-    render(<ContentApp />);
+    render(<ContentApp themeTarget={themeTarget} />);
 
     const button = await waitFor(() =>
       screen.getByRole('button', { name: /content_open_side_panel_aria/i }),
@@ -56,15 +61,13 @@ describe('ContentApp', () => {
     expect(button).toBeInTheDocument();
     expect(button).toHaveAttribute('data-host', 'localhost');
     expect(button).toHaveTextContent('content_side_panel_ready');
-    expect(document.documentElement.dataset.theme).toBe(
-      extensionConfig.defaultSettings.theme,
-    );
+    expect(themeTarget.dataset.themePreference).toBe(extensionConfig.defaultSettings.theme);
   });
 
   it('does not render trigger for disallowed hosts', async () => {
     mockedParseUrl.mockReturnValueOnce(new URL('https://example.com/'));
 
-    render(<ContentApp />);
+    render(<ContentApp themeTarget={themeTarget} />);
 
     await waitFor(() => expect(mockedStorage.loadSettings).toHaveBeenCalled());
     expect(screen.queryByRole('button')).toBeNull();

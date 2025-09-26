@@ -46,7 +46,7 @@ if (!mount) {
 
 const root = createRoot(mount);
 root.render(
-  React.createElement(React.StrictMode, null, React.createElement(ContentApp)),
+  React.createElement(React.StrictMode, null, React.createElement(ContentApp, { themeTarget: mount })),
 );
 
 const cleanup = () => {

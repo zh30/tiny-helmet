@@ -19,11 +19,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card';
+import { useThemeSync } from '@/shared/hooks/useThemeSync';
 
 function SidePanelApp() {
   const { ready } = useExtensionHydration();
   const { data: manifest } = useChromeManifest();
   const { settings, togglePinnedHost } = useExtensionStore();
+  useThemeSync(settings.theme ?? 'system');
   const [currentHost, setCurrentHost] = React.useState<string | null>(null);
 
   const extensionName = manifest?.name ?? getExtensionName();

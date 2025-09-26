@@ -12,13 +12,19 @@ import {
 
 const chromeStorageGet = vi.fn();
 const chromeStorageSet = vi.fn();
-const changeListeners: Array<Parameters<typeof subscribeToSettings>[0]> = [];
+const changeListeners: Array<
+  (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void
+> = [];
 
 const chromeMock = {
   storage: {
     sync: {
       get: chromeStorageGet,
       set: chromeStorageSet,
+      remove: vi.fn(),
+      clear: vi.fn(),
+      getBytesInUse: vi.fn(),
+      getKeys: vi.fn(),
     },
     onChanged: {
       addListener: (
@@ -26,10 +32,21 @@ const chromeMock = {
       ) => {
         changeListeners.push(listener);
       },
-      removeListener: () => undefined,
+      removeListener: (
+        listener: (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void,
+      ) => {
+        const index = changeListeners.indexOf(listener);
+        if (index !== -1) {
+          changeListeners.splice(index, 1);
+        }
+      },
+      hasListener: (
+        listener: (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void,
+      ) => changeListeners.includes(listener),
+      hasListeners: () => changeListeners.length > 0,
     },
   },
-} satisfies typeof chrome;
+} as unknown as typeof chrome;
 
 vi.stubGlobal('chrome', chromeMock);
 

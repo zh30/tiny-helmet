@@ -50,7 +50,7 @@ A modern Chrome extension scaffold powered by Rspack, React 19, Tailwind CSS v4,
 
 - The content script (`src/entries/content`) mounts a React tree into a Shadow DOM host so Tailwind utilities stay isolated from the page.
 - `contentScript.css` is shipped as a web-accessible resource; the runtime fetches it via `chrome.runtime.getURL(...)` and injects it into the Shadow DOM.
-- Theme data (`data-theme` and `data-force-theme`) continues to live on `document.documentElement`, so background, popup, and side panel stay in sync with content script preferences.
+- Theme data (`data-theme` plus `data-theme-preference`) stays in sync across popup, side panel, and content script surfaces.
 - If you add more UI, keep it inside the existing React root and reuse shadcn primitives or Tailwind classes for consistent styling.
 
 ## Next steps

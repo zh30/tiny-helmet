@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
+import { useThemeSync } from '@/shared/hooks/useThemeSync';
 
 const THEME_CYCLE: ThemePreference[] = ['system', 'light', 'dark'];
 
@@ -70,6 +71,7 @@ function PopupApp() {
   }, [loading, ready]);
 
   const currentTheme = settings.theme ?? 'system';
+  useThemeSync(currentTheme);
   const nextTheme = React.useMemo(() => {
     const index = THEME_CYCLE.indexOf(currentTheme);
     const nextIndex = (index + 1) % THEME_CYCLE.length;
