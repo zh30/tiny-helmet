@@ -1,10 +1,162 @@
 {
   "extension_name": {
-    "message": "小小头盔",
-    "description": "The name of the extension"
+    "message": "Tiny Helmet",
+    "description": "扩展显示名称"
   },
   "extension_description": {
-    "message": "一个增强开发体验的小型浏览器扩展。",
-    "description": "The description of the extension"
+    "message": "基于 React、Tailwind、shadcn UI 与 Zustand 的现代 Chrome 插件脚手架。",
+    "description": "Chrome 商店中展示的简短描述"
+  },
+  "popup_tagline": {
+    "message": "借助 React、Tailwind、shadcn UI 与 Zustand 快速搭建 MV3 界面。",
+    "description": "弹窗顶部的标语"
+  },
+  "popup_status_loading": {
+    "message": "正在加载偏好设置…",
+    "description": "设置拉取时的状态文案"
+  },
+  "popup_status_ready": {
+    "message": "偏好设置已同步",
+    "description": "设置就绪时的状态文案"
+  },
+  "popup_status_idle": {
+    "message": "尚未同步",
+    "description": "设置未同步时的状态文案"
+  },
+  "popup_preferences_title": {
+    "message": "首选项",
+    "description": "偏好设置卡片标题"
+  },
+  "popup_preferences_description": {
+    "message": "管理主题与侧边栏自动打开。",
+    "description": "偏好设置卡片描述"
+  },
+  "popup_theme_label": {
+    "message": "主题",
+    "description": "主题控制的标签"
+  },
+  "popup_theme_current": {
+    "message": "当前为 $1",
+    "description": "展示当前主题"
+  },
+  "popup_theme_next": {
+    "message": "切换到 $1",
+    "description": "切换主题的按钮文案"
+  },
+  "popup_auto_open_label": {
+    "message": "自动打开侧边栏",
+    "description": "侧边栏自动开启开关标签"
+  },
+  "popup_auto_open_hint": {
+    "message": "在允许的站点自动展示侧边栏。",
+    "description": "侧边栏自动开启辅助说明"
+  },
+  "popup_toggle_on": {
+    "message": "已启用",
+    "description": "通用开关开启状态"
+  },
+  "popup_toggle_off": {
+    "message": "已关闭",
+    "description": "通用开关关闭状态"
+  },
+  "popup_host_title": {
+    "message": "主机白名单",
+    "description": "主机列表卡片标题"
+  },
+  "popup_host_description": {
+    "message": "通过 chrome.storage 在浏览器之间同步。",
+    "description": "主机列表卡片描述"
+  },
+  "popup_host_placeholder": {
+    "message": "example.com",
+    "description": "主机输入框占位符"
+  },
+  "popup_host_add": {
+    "message": "添加",
+    "description": "添加主机按钮"
+  },
+  "popup_host_empty": {
+    "message": "点击主机即可固定并自动打开侧边栏。",
+    "description": "无固定主机时的提示"
+  },
+  "popup_open_side_panel": {
+    "message": "打开侧边栏",
+    "description": "手动打开侧边栏按钮"
+  },
+  "content_open_side_panel": {
+    "message": "打开侧边栏",
+    "description": "内容脚本按钮文案"
+  },
+  "content_side_panel_ready": {
+    "message": "侧边栏已就绪",
+    "description": "内容脚本在自动模式下的按钮文案"
+  },
+  "content_open_side_panel_aria": {
+    "message": "打开 Tiny Helmet 侧边栏",
+    "description": "浮动按钮的 ARIA 标签"
+  },
+  "sidepanel_status_ready": {
+    "message": "已与 chrome.storage 同步",
+    "description": "侧边栏顶部状态（已同步）"
+  },
+  "sidepanel_status_syncing": {
+    "message": "正在同步偏好设置…",
+    "description": "侧边栏顶部状态（同步中）"
+  },
+  "sidepanel_current_host_title": {
+    "message": "当前主机",
+    "description": "当前主机卡片标题"
+  },
+  "sidepanel_current_host_description": {
+    "message": "为此域名配置侧边栏行为。",
+    "description": "当前主机卡片描述"
+  },
+  "sidepanel_no_tab": {
+    "message": "未检测到活动标签页",
+    "description": "无活动标签页时的提示"
+  },
+  "sidepanel_host_bundled": {
+    "message": "此主机为脚手架内置，始终可使用侧边栏。",
+    "description": "内置主机提示"
+  },
+  "sidepanel_host_pinned": {
+    "message": "已固定：访问该主机时会自动打开侧边栏。",
+    "description": "已固定主机提示"
+  },
+  "sidepanel_host_unpinned": {
+    "message": "尚未固定，可固定后自动打开侧边栏。",
+    "description": "未固定主机提示"
+  },
+  "sidepanel_switch_tab": {
+    "message": "切换到需要管理的标签页即可调整行为。",
+    "description": "提示用户切换标签页"
+  },
+  "sidepanel_unpin_host": {
+    "message": "取消固定",
+    "description": "取消固定主机按钮"
+  },
+  "sidepanel_pin_host": {
+    "message": "固定主机",
+    "description": "固定主机按钮"
+  },
+  "sidepanel_auto_hosts_title": {
+    "message": "自动打开主机",
+    "description": "自动打开主机列表标题"
+  },
+  "sidepanel_auto_hosts_description": {
+    "message": "展示内置主机与自定义白名单。",
+    "description": "自动打开主机列表描述"
+  },
+  "sidepanel_host_badge_bundled": {
+    "message": "内置",
+    "description": "标记内置主机的徽标"
+  },
+  "sidepanel_host_badge_custom": {
+    "message": "自定义",
+    "description": "标记自定义主机的徽标"
+  },
+  "sidepanel_no_custom_hosts": {
+    "message": "在弹窗中添加自定义主机后会显示在此处。",
+    "description": "无自定义主机时的提示"
   }
 }

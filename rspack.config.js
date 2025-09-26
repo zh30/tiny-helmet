@@ -4,25 +4,24 @@ const path = require('path');
 const { defineConfig } = require('@rspack/cli');
 const rspack = require('@rspack/core');
 
-module.exports = (env, argv) => {
-  const mode = argv?.mode || 'development';
+module.exports = (_env, argv) => {
+  const mode = argv?.mode || process.env.NODE_ENV || 'development';
   const isProd = mode === 'production';
+  const extensionEnv = process.env.EXTENSION_ENV || (isProd ? 'production' : 'development');
 
   return defineConfig({
     mode,
     entry: {
-      popup: './src/popup/popup.tsx',
-      sidePanel: './src/sidePanel/sidePanel.tsx',
-      background: './src/scripts/background.ts',
-      contentScript: './src/scripts/contentScript.ts',
+      popup: path.resolve(__dirname, 'src/entries/popup/main.tsx'),
+      sidePanel: path.resolve(__dirname, 'src/entries/side-panel/main.tsx'),
+      background: path.resolve(__dirname, 'src/entries/background/index.ts'),
+      contentScript: path.resolve(__dirname, 'src/entries/content/index.ts'),
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: '[name].js',
-      // 禁止额外 runtime 与分包后产生多余 chunk，确保与 manifest 一一对应
       chunkFilename: '[name].js',
       publicPath: '',
-      // 在扩展页面与 Service Worker/Content Script 环境均可用
       globalObject: 'self',
       clean: true,
     },
@@ -30,6 +29,10 @@ module.exports = (env, argv) => {
       extensions: ['.tsx', '.ts', '.jsx', '.js'],
       alias: {
         '@': path.resolve(__dirname, 'src'),
+      },
+      extensionAlias: {
+        '.js': ['.ts', '.js'],
+        '.mjs': ['.mts', '.mjs'],
       },
     },
     module: {
@@ -51,7 +54,7 @@ module.exports = (env, argv) => {
                   react: {
                     runtime: 'automatic',
                     development: !isProd,
-                    throwIfNamespace: true,
+                    refresh: !isProd,
                   },
                 },
               },
@@ -82,19 +85,23 @@ module.exports = (env, argv) => {
     plugins: [
       new rspack.DefinePlugin({
         'process.env.NODE_ENV': JSON.stringify(mode),
+        'process.env.EXTENSION_ENV': JSON.stringify(extensionEnv),
         __DEV__: JSON.stringify(!isProd),
+      }),
+      new rspack.ProvidePlugin({
+        process: [require.resolve('process/browser')],
       }),
       new rspack.CssExtractRspackPlugin({
         filename: '[name].css',
       }),
       new rspack.HtmlRspackPlugin({
-        template: './src/popup/popup.html',
+        template: path.resolve(__dirname, 'src/entries/popup/index.html'),
         filename: 'popup.html',
         chunks: ['popup'],
         minify: isProd,
       }),
       new rspack.HtmlRspackPlugin({
-        template: './src/sidePanel/sidePanel.html',
+        template: path.resolve(__dirname, 'src/entries/side-panel/index.html'),
         filename: 'sidePanel.html',
         chunks: ['sidePanel'],
         minify: isProd,

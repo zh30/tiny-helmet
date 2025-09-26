@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extension_name__",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "__MSG_extension_description__",
   "minimum_chrome_version": "114",
   "default_locale": "en",
@@ -12,14 +12,8 @@
     "128": "public/icon128.png"
   },
   "action": {
-    // "default_popup": "popup.html",
-    // "default_icon": {
-    //   "16": "public/icon16.png",
-    //   "32": "public/icon32.png",
-    //   "48": "public/icon48.png",
-    //   "128": "public/icon128.png"
-    // }
-    "default_title": "__MSG_extension_name__"
+    "default_title": "__MSG_extension_name__",
+    "default_popup": "popup.html"
   },
   "side_panel": {
     "default_path": "sidePanel.html"
@@ -30,11 +24,13 @@
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "*://localhost/*",
+        "*://*.zhanghe.dev/*"
       ],
       "js": [
         "contentScript.js"
-      ]
+      ],
+      "run_at": "document_idle"
     }
   ],
   "permissions": [
@@ -43,5 +39,19 @@
     "scripting",
     "tabs",
     "sidePanel"
+  ],
+  "host_permissions": [
+    "*://localhost/*",
+    "*://*.zhanghe.dev/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "public/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
   ]
 }

@@ -4,64 +4,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Tiny Helmet** is a Chrome browser extension built with React, TypeScript, Tailwind CSS v4, and Rspack. The extension enhances developer experience by providing a side panel and reading time estimation for articles. It primarily activates on `zhanghe.dev` and includes internationalization support.
+**Tiny Helmet** is a Chrome Extension Manifest v3 scaffold that ships with React 19, Tailwind CSS v4, shadcn UI primitives, Zustand, TanStack React Query, and Rspack. It exposes React-based popup and side panel surfaces, a configurable background service worker, and a themed, localization-aware content script helper.
 
 ## Development Commands
 
-### Build & Development
-- `pnpm dev` - Start development build with file watching
-- `pnpm build` - Production build 
-- `pnpm tsc` - TypeScript type checking
-- **Package Manager**: Uses `pnpm@9.15.1+` (specified in packageManager field)
-
-### Testing
-- No test framework configured yet (`npm test` returns error)
+- `pnpm dev` – Incremental build that watches all MV3 entrypoints and writes to `dist/`.
+- `pnpm build` – Production build with minification and asset copying.
+- `pnpm typecheck` – Run TypeScript in no-emit mode using bundler-style resolution.
+- **Package manager**: `pnpm@9` (pinned in `package.json`).
 
 ## Architecture
 
-### Browser Extension Structure
-The extension follows Chrome Extension Manifest v3 architecture with these entry points:
+- **Entries** (`src/entries/`)
+  - `background/` – Service worker orchestrating side panel enablement and host automation.
+  - `content/` – Content script that syncs theme preferences, renders a floating opener, and reacts to storage updates.
+  - `popup/` – React UI for managing hosts, theme, and automation flags.
+  - `side-panel/` – React UI rendered inside Chrome's side panel, reflecting shared state in real time.
+- **Shared modules** (`src/shared/`)
+  - `config/extension.ts` – Central defaults, entry asset paths, host allowlists, and settings shape.
+  - `platform/` – Chrome wrappers (`storage.ts`, `i18n.ts`) that guard access when APIs are unavailable.
+  - `state/useExtensionStore.ts` – Persisted Zustand store with hydration helpers and Chrome event subscription.
+  - `hooks/` – React hooks for hydration (`useExtensionHydration`) and metadata (`useChromeManifest`).
+  - `providers/AppProviders.tsx` – Singleton React Query client for popup + side panel surfaces.
+  - `ui/` – shadcn-inspired primitives (`Button`, `Card`, `Input`).
+  - `lib/utils.ts` – Utility helpers (`cn`, runtime checks, URL parsing).
+- **Styles** (`src/styles/tailwind.css`) – Tailwind 4 tokens for light/dark theming.
 
-- **Background Script** (`src/scripts/background.ts`) - Service worker handling tab events and side panel management
-- **Content Script** (`src/scripts/contentScript.ts`) - Injected into pages to add reading time badges to articles
-- **Side Panel** (`src/sidePanel/sidePanel.tsx`) - React component for the extension's side panel UI
-- **Popup** (`src/popup/popup.tsx`) - React component for extension popup (currently disabled in manifest)
+## Key Behaviours
 
-### Key Features
-1. **Conditional Side Panel**: Automatically enabled/disabled based on current tab URL (specifically `zhanghe.dev`)
-2. **Reading Time Calculator**: Content script adds estimated reading time badges to articles
-3. **Internationalization**: Support for English and Simplified Chinese (`_locales/` directory)
+- Background worker toggles and optionally opens the side panel based on default hosts and user-pinned domains stored in `chrome.storage`.
+- Content script applies the persisted theme and exposes a localized floating action button when the active domain is allowed.
+- Popup and side panel hydrate shared state via the Zustand store, backed by React Query for extension metadata and ready for future async data.
+- Manifest restricts content scripts and host permissions to the default allowlist; update both alongside `extensionConfig` when adding domains.
 
-### Technology Stack
-- **Frontend**: React 19 + TypeScript
-- **Styling**: Tailwind CSS v4 with PostCSS
-- **Build Tool**: Rspack (webpack alternative) with SWC compiler
-- **Bundle Structure**: Separate chunks for popup, sidePanel, background, and contentScript
+## Notes for Contributors
 
-### File Structure Patterns
-```
-src/
-├── manifest.json          # Extension configuration
-├── popup/                 # Popup UI (HTML + React)
-├── sidePanel/            # Side panel UI (HTML + React) 
-├── scripts/              # Background and content scripts
-└── styles/               # Tailwind CSS configuration
-```
-
-### Development Patterns
-- **React Components**: Functional components with hooks (React.useState)
-- **Chrome APIs**: Uses chrome.tabs, chrome.sidePanel, chrome.action
-- **Error Handling**: Console logging with proper error catching
-- **Styling**: Tailwind utility classes with custom configuration
-
-### Rspack Configuration
-- **Entry Points**: Multi-entry setup for all extension components
-- **TypeScript**: SWC-based transpilation with JSX support
-- **CSS**: PostCSS + Tailwind processing with extraction
-- **Output**: Clean builds to `dist/` directory with manifest and assets copying
-
-### Manifest Configuration
-- **Permissions**: storage, activeTab, scripting, tabs, sidePanel
-- **Content Scripts**: Runs on all URLs (`<all_urls>`)
-- **Minimum Chrome**: v114+
-- **Side Panel**: Default path set to `sidePanel.html`
+- Add new React surfaces under `src/entries/<feature>` and register them in both `rspack.config.js` and `src/manifest.json`.
+- Extend `extensionConfig` when altering storage shape, asset locations, or Chrome permissions to keep background/content logic aligned.
+- Prefer shared utilities/hooks/providers to avoid duplicating storage or Chrome API access patterns.
+- Use `getMessage` wrappers for user-facing strings and update `_locales/en` + `_locales/zh_CN` together.
+- Tailwind tokens power shadcn components; extend `tailwind.config.ts` for new palettes or animations instead of inlining custom CSS.

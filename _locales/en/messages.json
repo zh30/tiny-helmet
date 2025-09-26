@@ -1,10 +1,162 @@
 {
   "extension_name": {
-    "message": "TinyHelmet",
-    "description": "The name of the extension"
+    "message": "Tiny Helmet",
+    "description": "The display name of the extension"
   },
   "extension_description": {
-    "message": "A tiny browser extension to enhance your development experience.",
-    "description": "The description of the extension"
+    "message": "A modern Chrome extension scaffold powered by React, Tailwind, shadcn, and Zustand.",
+    "description": "Short description shown in Chrome Web Store"
+  },
+  "popup_tagline": {
+    "message": "Bootstrap MV3 surfaces with React, Tailwind, shadcn UI, and Zustand.",
+    "description": "Tagline shown in the popup header"
+  },
+  "popup_status_loading": {
+    "message": "Loading preferences…",
+    "description": "Status label when settings are hydrating"
+  },
+  "popup_status_ready": {
+    "message": "Preferences synced",
+    "description": "Status label when settings are ready"
+  },
+  "popup_status_idle": {
+    "message": "Not synced yet",
+    "description": "Status label when settings are not yet loaded"
+  },
+  "popup_preferences_title": {
+    "message": "Preferences",
+    "description": "Card title for preferences section"
+  },
+  "popup_preferences_description": {
+    "message": "Theme and automation for the side panel.",
+    "description": "Card description for preferences section"
+  },
+  "popup_theme_label": {
+    "message": "Theme",
+    "description": "Label for theme controls"
+  },
+  "popup_theme_current": {
+    "message": "Currently $1",
+    "description": "Shows the active theme"
+  },
+  "popup_theme_next": {
+    "message": "Switch to $1",
+    "description": "Button label to switch theme"
+  },
+  "popup_auto_open_label": {
+    "message": "Auto-open panel",
+    "description": "Toggle label for automatic side panel opening"
+  },
+  "popup_auto_open_hint": {
+    "message": "Launch side panel on allowed hosts.",
+    "description": "Helper text for auto-open toggle"
+  },
+  "popup_toggle_on": {
+    "message": "Enabled",
+    "description": "Generic toggle on label"
+  },
+  "popup_toggle_off": {
+    "message": "Disabled",
+    "description": "Generic toggle off label"
+  },
+  "popup_host_title": {
+    "message": "Host allowlist",
+    "description": "Card title for host list"
+  },
+  "popup_host_description": {
+    "message": "Syncs via chrome.storage across browsers.",
+    "description": "Card description for host list"
+  },
+  "popup_host_placeholder": {
+    "message": "example.com",
+    "description": "Placeholder for host input"
+  },
+  "popup_host_add": {
+    "message": "Add",
+    "description": "Button label to add a host"
+  },
+  "popup_host_empty": {
+    "message": "Click a host to pin it for auto side panel.",
+    "description": "Helper text when no pinned hosts"
+  },
+  "popup_open_side_panel": {
+    "message": "Open side panel",
+    "description": "Button label to open the side panel manually"
+  },
+  "content_open_side_panel": {
+    "message": "Open side panel",
+    "description": "Content script button label"
+  },
+  "content_side_panel_ready": {
+    "message": "Side panel ready",
+    "description": "Content script button label when auto-open is enabled"
+  },
+  "content_open_side_panel_aria": {
+    "message": "Open Tiny Helmet side panel",
+    "description": "ARIA label for the floating button"
+  },
+  "sidepanel_status_ready": {
+    "message": "Synced with chrome.storage",
+    "description": "Header status when settings are ready"
+  },
+  "sidepanel_status_syncing": {
+    "message": "Syncing preferences…",
+    "description": "Header status when syncing"
+  },
+  "sidepanel_current_host_title": {
+    "message": "Current host",
+    "description": "Card title for current host section"
+  },
+  "sidepanel_current_host_description": {
+    "message": "Control the automation for this domain.",
+    "description": "Card description for current host section"
+  },
+  "sidepanel_no_tab": {
+    "message": "No active tab detected",
+    "description": "Message shown when there is no active tab"
+  },
+  "sidepanel_host_bundled": {
+    "message": "This host ships with the scaffold and always has the panel available.",
+    "description": "Message for bundled hosts"
+  },
+  "sidepanel_host_pinned": {
+    "message": "Pinned: the side panel opens automatically when you visit this host.",
+    "description": "Message for pinned hosts"
+  },
+  "sidepanel_host_unpinned": {
+    "message": "Not pinned yet. Pin it to auto-open the panel.",
+    "description": "Message for hosts that can be pinned"
+  },
+  "sidepanel_switch_tab": {
+    "message": "Switch to a tab to manage its behaviour.",
+    "description": "Prompt to switch tabs"
+  },
+  "sidepanel_unpin_host": {
+    "message": "Unpin host",
+    "description": "Button label to unpin a host"
+  },
+  "sidepanel_pin_host": {
+    "message": "Pin host",
+    "description": "Button label to pin a host"
+  },
+  "sidepanel_auto_hosts_title": {
+    "message": "Auto-open hosts",
+    "description": "Card title for allowed hosts list"
+  },
+  "sidepanel_auto_hosts_description": {
+    "message": "Combined defaults and your custom allowlist.",
+    "description": "Card description for allowed hosts list"
+  },
+  "sidepanel_host_badge_bundled": {
+    "message": "bundled",
+    "description": "Badge label for bundled hosts"
+  },
+  "sidepanel_host_badge_custom": {
+    "message": "custom",
+    "description": "Badge label for custom hosts"
+  },
+  "sidepanel_no_custom_hosts": {
+    "message": "Add hosts from the popup to see them here.",
+    "description": "Helper text when there are no custom hosts"
   }
 }
