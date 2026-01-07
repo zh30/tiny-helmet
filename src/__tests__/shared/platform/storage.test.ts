@@ -79,7 +79,7 @@ describe('storage helpers', () => {
       callback({
         [SETTINGS_STORAGE_KEY]: {
           ...extensionConfig.defaultSettings,
-          pinnedHosts: ['Example.com', 'foo.zhanghe.dev'],
+          pinnedHosts: ['Example.com', 'foo.zh30.github.io'],
           sidePanel: { autoOpen: false },
         } satisfies ExtensionSettings,
       });
@@ -88,7 +88,7 @@ describe('storage helpers', () => {
     const settings = await loadSettings();
 
     expect(settings.sidePanel.autoOpen).toBe(false);
-    expect(settings.pinnedHosts).toEqual(['example.com', 'foo.zhanghe.dev']);
+    expect(settings.pinnedHosts).toEqual(['example.com', 'foo.zh30.github.io']);
   });
 
   it('saves merged settings back to storage', async () => {

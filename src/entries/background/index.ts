@@ -76,8 +76,8 @@ async function syncSidePanel(tabId: number, url?: string | null) {
 
   const shouldEnable = Boolean(
     hostname &&
-      (isHostAllowed(hostname) ||
-        (cachedSettings.sidePanel.autoOpen && cachedSettings.pinnedHosts.includes(hostname)))
+    (isHostAllowed(hostname) ||
+      (cachedSettings.sidePanel.autoOpen && cachedSettings.pinnedHosts.includes(hostname)))
   );
 
   try {
@@ -124,18 +124,31 @@ chrome.action.onClicked.addListener(async (tab) => {
   await openSidePanel(tab.id);
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message?.type === 'tiny-helmet:open-side-panel' && sender.tab?.id) {
-    const respond = sendResponse as (response?: unknown) => void;
+import { addMessageListener } from '@/shared/platform/messaging';
 
-    openSidePanel(sender.tab.id)
-      .then((success) => respond({ ok: success }))
-      .catch((error) => {
-        console.error('Failed to open side panel from message', error);
-        respond({ ok: false, error: error?.message });
-      });
-    return true;
+// ... (previous functions openSidePanel, hydrateSettings, etc.)
+
+addMessageListener('tiny-helmet:open-side-panel', async (_, sender) => {
+  if (sender.tab?.id) {
+    const success = await openSidePanel(sender.tab.id);
+    return { ok: success };
   }
-
-  return undefined;
+  return { ok: false, error: 'No tab ID' };
 });
+
+addMessageListener('tiny-helmet:get-tab-info', (_, sender) => {
+  return { url: sender.tab?.url, id: sender.tab?.id };
+});
+
+addMessageListener('tiny-helmet:show-notification', (payload) => {
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: 'public/icon128.png',
+    title: payload.title,
+    message: payload.message,
+    priority: 2,
+  });
+});
+
+// Example: Context Menu
+// ... (rest of context menu and alarm logic)

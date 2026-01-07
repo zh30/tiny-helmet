@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extension_name__",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "__MSG_extension_description__",
   "minimum_chrome_version": "114",
   "default_locale": "en",
@@ -18,14 +18,20 @@
   "side_panel": {
     "default_path": "sidePanel.html"
   },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "chrome_url_overrides": {
+    "newtab": "newTab.html"
+  },
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": [
-        "*://localhost/*",
-        "*://*.zhanghe.dev/*"
+        "<all_urls>"
       ],
       "js": [
         "contentScript.js"
@@ -38,11 +44,13 @@
     "activeTab",
     "scripting",
     "tabs",
-    "sidePanel"
+    "sidePanel",
+    "notifications",
+    "alarms",
+    "contextMenus"
   ],
   "host_permissions": [
-    "*://localhost/*",
-    "*://*.zhanghe.dev/*"
+    "<all_urls>"
   ],
   "web_accessible_resources": [
     {

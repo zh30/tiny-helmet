@@ -4,6 +4,10 @@ const path = require('path');
 const { defineConfig } = require('@rspack/cli');
 const rspack = require('@rspack/core');
 
+/**
+ * @param {Record<string, any>} _env
+ * @param {Record<string, any>} argv
+ */
 module.exports = (_env, argv) => {
   const mode = argv?.mode || process.env.NODE_ENV || 'development';
   const isProd = mode === 'production';
@@ -14,6 +18,8 @@ module.exports = (_env, argv) => {
     entry: {
       popup: path.resolve(__dirname, 'src/entries/popup/main.tsx'),
       sidePanel: path.resolve(__dirname, 'src/entries/side-panel/main.tsx'),
+      options: path.resolve(__dirname, 'src/entries/options/main.tsx'),
+      newTab: path.resolve(__dirname, 'src/entries/new-tab/main.tsx'),
       background: path.resolve(__dirname, 'src/entries/background/index.ts'),
       contentScript: path.resolve(__dirname, 'src/entries/content/index.ts'),
     },
@@ -104,6 +110,18 @@ module.exports = (_env, argv) => {
         template: path.resolve(__dirname, 'src/entries/side-panel/index.html'),
         filename: 'sidePanel.html',
         chunks: ['sidePanel'],
+        minify: isProd,
+      }),
+      new rspack.HtmlRspackPlugin({
+        template: path.resolve(__dirname, 'src/entries/options/index.html'),
+        filename: 'options.html',
+        chunks: ['options'],
+        minify: isProd,
+      }),
+      new rspack.HtmlRspackPlugin({
+        template: path.resolve(__dirname, 'src/entries/new-tab/index.html'),
+        filename: 'newTab.html',
+        chunks: ['newTab'],
         minify: isProd,
       }),
       new rspack.CopyRspackPlugin({

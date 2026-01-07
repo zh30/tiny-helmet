@@ -2,7 +2,9 @@ import '@/styles/tailwind.css';
 
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
-import { PanelsTopLeft, SunMedium, MoonStar, Laptop } from 'lucide-react';
+import { PanelsTopLeft, SunMedium, MoonStar, Laptop, Plus, X, Settings2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { clsx } from 'clsx';
 
 import { extensionConfig, type ThemePreference } from '@/shared/config/extension';
 import { useExtensionHydration } from '@/shared/hooks/useExtensionHydration';
@@ -21,6 +23,7 @@ import {
 } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { useThemeSync } from '@/shared/hooks/useThemeSync';
+import { sendMessage } from '@/shared/platform/messaging';
 
 const THEME_CYCLE: ThemePreference[] = ['system', 'light', 'dark'];
 
@@ -60,23 +63,8 @@ function PopupApp() {
   const extensionVersion = manifest?.version ?? '0.0.0';
   const tagline = getMessage('popup_tagline', getExtensionDescription());
 
-  const statusLabel = React.useMemo(() => {
-    if (loading) {
-      return getMessage('popup_status_loading', 'Loading preferences…');
-    }
-    if (ready) {
-      return getMessage('popup_status_ready', 'Preferences synced');
-    }
-    return getMessage('popup_status_idle', 'Not synced yet');
-  }, [loading, ready]);
-
   const currentTheme = settings.theme ?? 'system';
   useThemeSync(currentTheme);
-  const nextTheme = React.useMemo(() => {
-    const index = THEME_CYCLE.indexOf(currentTheme);
-    const nextIndex = (index + 1) % THEME_CYCLE.length;
-    return THEME_CYCLE[nextIndex];
-  }, [currentTheme]);
 
   const handleAddHost = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -104,142 +92,176 @@ function PopupApp() {
     }
 
     try {
-      const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-      if (tab?.id) {
-        await chrome.sidePanel.open({ tabId: tab.id });
-      }
+      await sendMessage('tiny-helmet:open-side-panel', undefined);
     } catch (error) {
       console.error('Failed to open side panel', error);
     }
   }, []);
 
   return (
-    <div className="min-w-[22rem] max-w-sm space-y-3 p-4 text-sm">
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-muted-foreground">{statusLabel}</p>
-          <h1 className="text-base font-semibold">{extensionName}</h1>
-          <p className="text-xs text-muted-foreground">{tagline}</p>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="min-w-88 max-w-sm overflow-hidden bg-background font-sans antialiased"
+    >
+      <header className="relative space-y-4 px-6 pt-8 pb-6">
+        <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/20 via-primary/5 to-transparent" />
+        <div className="flex items-center justify-between">
+          <motion.div
+            initial={{ x: -10 }}
+            animate={{ x: 0 }}
+            className="flex flex-col"
+          >
+            <h1 className="text-2xl font-black tracking-tighter text-gradient">{extensionName}</h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+              v{extensionVersion} • {ready ? 'Synced' : 'Connecting'}
+            </p>
+          </motion.div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full bg-background/50 hover:bg-background transition-colors"
+            onClick={() => chrome.runtime.openOptionsPage()}
+            aria-label="Open settings"
+          >
+            <Settings2 className="h-4 w-4" />
+          </Button>
         </div>
-        <span className="rounded-full border border-border bg-card px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          v{extensionVersion}
-        </span>
+        <p className="text-xs font-medium leading-relaxed text-muted-foreground/80">{tagline}</p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{getMessage('popup_preferences_title', 'Preferences')}</CardTitle>
-          <CardDescription>
-            {getMessage('popup_preferences_description', 'Theme and automation for the side panel.')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-medium leading-none">
-                {getMessage('popup_theme_label', 'Theme')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {getMessage(
-                  'popup_theme_current',
-                  `Currently ${formatTheme(currentTheme)}`,
-                  formatTheme(currentTheme),
-                )}
-              </p>
-            </div>
-            <Button variant="secondary" size="sm" onClick={() => setTheme(nextTheme)}>
-              {themeIcon[nextTheme]}
-              <span className="text-xs">
-                {getMessage(
-                  'popup_theme_next',
-                  `Switch to ${formatTheme(nextTheme)}`,
-                  formatTheme(nextTheme),
-                )}
-              </span>
-            </Button>
-          </div>
-
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-medium leading-none">
-                {getMessage('popup_auto_open_label', 'Auto-open panel')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {getMessage('popup_auto_open_hint', 'Launch side panel on allowed hosts.')}
-              </p>
-            </div>
-            <Button
-              variant={settings.sidePanel.autoOpen ? 'secondary' : 'outline'}
-              size="sm"
-              onClick={() => setSidePanelAutoOpen(!settings.sidePanel.autoOpen)}
-            >
-              {settings.sidePanel.autoOpen
-                ? getMessage('popup_toggle_on', 'Enabled')
-                : getMessage('popup_toggle_off', 'Disabled')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{getMessage('popup_host_title', 'Host allowlist')}</CardTitle>
-          <CardDescription>
-            {getMessage('popup_host_description', 'Syncs via chrome.storage across browsers.')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <form onSubmit={handleAddHost} className="flex gap-2">
-            <Input
-              placeholder={getMessage('popup_host_placeholder', 'example.com')}
-              autoComplete="off"
-              value={hostDraft}
-              onChange={(event) => setHostDraft(event.target.value)}
-            />
-            <Button type="submit" size="sm" disabled={!hostDraft.trim()}>
-              {getMessage('popup_host_add', 'Add')}
-            </Button>
-          </form>
-
-          <div className="flex flex-wrap gap-2">
-            {[...extensionConfig.sidePanel.allowedHosts, ...settings.pinnedHosts]
-              .filter((host, index, array) => array.indexOf(host) === index)
-              .map((host) => {
-                const active = settings.pinnedHosts.includes(host);
-                return (
+      <div className="space-y-4 px-6 pb-8 text-sm">
+        <Card className="glass premium-shadow border-none overflow-hidden">
+          <CardHeader className="pb-3 pt-4 px-5">
+            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
+              Preferences
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 pb-5 px-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold">Theme</span>
+              <div className="flex gap-1 rounded-full bg-accent/30 p-1">
+                {THEME_CYCLE.map((t) => (
                   <button
-                    key={host}
-                    type="button"
-                    onClick={() => togglePinnedHost(host)}
-                    className="group inline-flex items-center gap-1 rounded-full border border-border bg-accent px-3 py-1 text-xs font-medium text-accent-foreground transition hover:bg-accent/80"
-                    aria-pressed={active}
+                    key={t}
+                    onClick={() => setTheme(t)}
+                    title={formatTheme(t)}
+                    className={clsx(
+                      "rounded-full p-2 transition-all duration-200",
+                      currentTheme === t
+                        ? "bg-background text-primary shadow-sm scale-110"
+                        : "text-muted-foreground hover:text-foreground hover:bg-background/20"
+                    )}
                   >
-                    <span>{host}</span>
-                    <span className="text-muted-foreground transition group-hover:text-destructive">
-                      {active ? '×' : '+'}
-                    </span>
+                    {themeIcon[t]}
                   </button>
-                );
-              })}
-            {settings.pinnedHosts.length === 0 && (
-              <span className="text-xs text-muted-foreground">
-                {getMessage('popup_host_empty', 'Click a host to pin it for auto side panel.')}
-              </span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            </div>
 
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={handleOpenSidePanel}
-        disabled={!isSidePanelSupported()}
-      >
-        <PanelsTopLeft className="h-4 w-4" aria-hidden />
-        <span>{getMessage('popup_open_side_panel', 'Open side panel')}</span>
-      </Button>
-    </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <span className="text-sm font-semibold">Auto-open Panel</span>
+                <p className="text-[10px] text-muted-foreground leading-tight">Launch panel on allowed hosts</p>
+              </div>
+              <button
+                onClick={() => setSidePanelAutoOpen(!settings.sidePanel.autoOpen)}
+                className={clsx(
+                  "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                  settings.sidePanel.autoOpen ? "bg-primary" : "bg-muted"
+                )}
+              >
+                <span
+                  className={clsx(
+                    "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform",
+                    settings.sidePanel.autoOpen ? "translate-x-4" : "translate-x-1"
+                  )}
+                />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass premium-shadow border-none overflow-hidden">
+          <CardHeader className="pb-3 pt-4 px-5">
+            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
+              Host Allowlist
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pb-5 px-5">
+            <form onSubmit={handleAddHost} className="relative flex items-center">
+              <Input
+                placeholder="Add host (e.g. google.com)"
+                className="pr-10 bg-background/50 border-white/10"
+                autoComplete="off"
+                value={hostDraft}
+                onChange={(event) => setHostDraft(event.target.value)}
+              />
+              <button
+                type="submit"
+                disabled={!hostDraft.trim()}
+                className="absolute right-3 text-primary disabled:text-muted-foreground/40 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </form>
+
+            <div className="flex flex-wrap gap-2 min-h-6">
+              <AnimatePresence mode="popLayout">
+                {[...extensionConfig.sidePanel.allowedHosts, ...settings.pinnedHosts]
+                  .filter((host, index, array) => array.indexOf(host) === index)
+                  .map((host) => {
+                    const pinned = settings.pinnedHosts.includes(host);
+                    const isDefault = extensionConfig.sidePanel.allowedHosts.includes(host);
+                    return (
+                      <motion.div
+                        key={host}
+                        layout
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className={clsx(
+                          "group inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all",
+                          isDefault
+                            ? "bg-primary/5 border-primary/20 text-primary"
+                            : "bg-accent/40 border-white/5 text-foreground/80 hover:bg-accent/60"
+                        )}
+                      >
+                        <span>{host}</span>
+                        {!isDefault && (
+                          <button
+                            type="button"
+                            onClick={() => togglePinnedHost(host)}
+                            className="text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                        {isDefault && <div className="h-1 w-1 rounded-full bg-primary/40" />}
+                      </motion.div>
+                    );
+                  })}
+              </AnimatePresence>
+              {settings.pinnedHosts.length === 0 && (
+                <p className="text-[10px] italic text-muted-foreground/60 w-full text-center py-2">
+                  No custom hosts added yet
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Button
+          variant="default"
+          className="w-full h-11 rounded-xl glass premium-shadow bg-primary hover:bg-primary/90 text-primary-foreground font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
+          onClick={handleOpenSidePanel}
+          disabled={!isSidePanelSupported()}
+        >
+          <PanelsTopLeft className="mr-2 h-4 w-4" />
+          <span>Open Side Panel</span>
+        </Button>
+      </div>
+    </motion.div>
   );
 }
 

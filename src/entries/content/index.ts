@@ -19,7 +19,10 @@ function createMountTree() {
   host.id = HOST_ID;
   host.style.all = 'initial';
   host.style.position = 'fixed';
-  host.style.inset = '0 auto auto 0';
+  host.style.inset = '0';
+  host.style.width = '0';
+  host.style.height = '0';
+  host.style.zIndex = '2147483647';
   host.style.pointerEvents = 'none';
 
   const shadow = host.attachShadow({ mode: 'open' });
