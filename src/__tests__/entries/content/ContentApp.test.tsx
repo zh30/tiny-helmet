@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ContentApp } from '@/entries/content/ContentApp';
 import { extensionConfig } from '@/shared/config/extension';
-import * as storage from '@/shared/platform/storage';
 import * as utils from '@/shared/lib/utils';
+import * as storage from '@/shared/platform/storage';
 
 vi.mock('@/shared/platform/storage', async (importOriginal) => {
   const actual = await importOriginal<typeof storage>();
@@ -55,7 +55,7 @@ describe('ContentApp', () => {
     render(<ContentApp themeTarget={themeTarget} />);
 
     const button = await waitFor(() =>
-      screen.getByRole('button', { name: /content_open_side_panel_aria/i }),
+      screen.getByRole('button', { name: /content_open_side_panel_aria/i })
     );
 
     expect(button).toBeInTheDocument();

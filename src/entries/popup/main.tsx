@@ -1,29 +1,23 @@
 import '@/styles/tailwind.css';
 
+import { clsx } from 'clsx';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Laptop, MoonStar, PanelsTopLeft, Plus, Settings2, SunMedium, X } from 'lucide-react';
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
-import { PanelsTopLeft, SunMedium, MoonStar, Laptop, Plus, X, Settings2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { clsx } from 'clsx';
 
 import { extensionConfig, type ThemePreference } from '@/shared/config/extension';
-import { useExtensionHydration } from '@/shared/hooks/useExtensionHydration';
 import { useChromeManifest } from '@/shared/hooks/useChromeManifest';
+import { useExtensionHydration } from '@/shared/hooks/useExtensionHydration';
+import { useThemeSync } from '@/shared/hooks/useThemeSync';
 import { isSidePanelSupported } from '@/shared/lib/utils';
 import { getExtensionDescription, getExtensionName, getMessage } from '@/shared/platform/i18n';
-import { useExtensionStore } from '@/shared/state/useExtensionStore';
-import { AppProviders } from '@/shared/providers/AppProviders';
-import { Button } from '@/shared/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/shared/ui/card';
-import { Input } from '@/shared/ui/input';
-import { useThemeSync } from '@/shared/hooks/useThemeSync';
 import { sendMessage } from '@/shared/platform/messaging';
+import { AppProviders } from '@/shared/providers/AppProviders';
+import { useExtensionStore } from '@/shared/state/useExtensionStore';
+import { Button } from '@/shared/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Input } from '@/shared/ui/input';
 
 const THEME_CYCLE: ThemePreference[] = ['system', 'light', 'dark'];
 
@@ -54,7 +48,7 @@ function normalizeHost(input: string): string | null {
 }
 
 function PopupApp() {
-  const { ready, loading } = useExtensionHydration();
+  const { ready } = useExtensionHydration();
   const { data: manifest } = useChromeManifest();
   const { settings, setTheme, togglePinnedHost, setSidePanelAutoOpen } = useExtensionStore();
   const [hostDraft, setHostDraft] = React.useState('');
@@ -83,7 +77,7 @@ function PopupApp() {
       await togglePinnedHost(normalized);
       setHostDraft('');
     },
-    [hostDraft, settings.pinnedHosts, togglePinnedHost],
+    [hostDraft, settings.pinnedHosts, togglePinnedHost]
   );
 
   const handleOpenSidePanel = React.useCallback(async () => {
@@ -107,11 +101,7 @@ function PopupApp() {
       <header className="relative space-y-4 px-6 pt-8 pb-6">
         <div className="absolute inset-0 -z-10 bg-linear-to-br from-primary/20 via-primary/5 to-transparent" />
         <div className="flex items-center justify-between">
-          <motion.div
-            initial={{ x: -10 }}
-            animate={{ x: 0 }}
-            className="flex flex-col"
-          >
+          <motion.div initial={{ x: -10 }} animate={{ x: 0 }} className="flex flex-col">
             <h1 className="text-2xl font-black tracking-tighter text-gradient">{extensionName}</h1>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
               v{extensionVersion} • {ready ? 'Synced' : 'Connecting'}
@@ -147,10 +137,10 @@ function PopupApp() {
                     onClick={() => setTheme(t)}
                     title={formatTheme(t)}
                     className={clsx(
-                      "rounded-full p-2 transition-all duration-200",
+                      'rounded-full p-2 transition-all duration-200',
                       currentTheme === t
-                        ? "bg-background text-primary shadow-sm scale-110"
-                        : "text-muted-foreground hover:text-foreground hover:bg-background/20"
+                        ? 'bg-background text-primary shadow-sm scale-110'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background/20'
                     )}
                   >
                     {themeIcon[t]}
@@ -162,19 +152,21 @@ function PopupApp() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <span className="text-sm font-semibold">Auto-open Panel</span>
-                <p className="text-[10px] text-muted-foreground leading-tight">Launch panel on allowed hosts</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  Launch panel on allowed hosts
+                </p>
               </div>
               <button
                 onClick={() => setSidePanelAutoOpen(!settings.sidePanel.autoOpen)}
                 className={clsx(
-                  "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                  settings.sidePanel.autoOpen ? "bg-primary" : "bg-muted"
+                  'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                  settings.sidePanel.autoOpen ? 'bg-primary' : 'bg-muted'
                 )}
               >
                 <span
                   className={clsx(
-                    "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform",
-                    settings.sidePanel.autoOpen ? "translate-x-4" : "translate-x-1"
+                    'pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform',
+                    settings.sidePanel.autoOpen ? 'translate-x-4' : 'translate-x-1'
                   )}
                 />
               </button>
@@ -211,7 +203,7 @@ function PopupApp() {
                 {[...extensionConfig.sidePanel.allowedHosts, ...settings.pinnedHosts]
                   .filter((host, index, array) => array.indexOf(host) === index)
                   .map((host) => {
-                    const pinned = settings.pinnedHosts.includes(host);
+                    const _pinned = settings.pinnedHosts.includes(host);
                     const isDefault = extensionConfig.sidePanel.allowedHosts.includes(host);
                     return (
                       <motion.div
@@ -221,10 +213,10 @@ function PopupApp() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         className={clsx(
-                          "group inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all",
+                          'group inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all',
                           isDefault
-                            ? "bg-primary/5 border-primary/20 text-primary"
-                            : "bg-accent/40 border-white/5 text-foreground/80 hover:bg-accent/60"
+                            ? 'bg-primary/5 border-primary/20 text-primary'
+                            : 'bg-accent/40 border-white/5 text-foreground/80 hover:bg-accent/60'
                         )}
                       >
                         <span>{host}</span>
@@ -275,5 +267,5 @@ createRoot(container).render(
     <AppProviders>
       <PopupApp />
     </AppProviders>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

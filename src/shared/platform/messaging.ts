@@ -5,19 +5,21 @@
 
 export interface MessageMap {
   'tiny-helmet:open-side-panel': {
-    payload: void;
+    payload: undefined;
     response: { ok: boolean; error?: string };
   };
   'tiny-helmet:get-tab-info': {
-    payload: void;
+    payload: undefined;
     response: { url?: string; id?: number };
   };
   'tiny-helmet:sync-settings': {
-    payload: void;
+    payload: undefined;
+    // biome-ignore lint/suspicious/noConfusingVoidType: response needs to be void to match implicitly void callbacks
     response: void;
   };
   'tiny-helmet:show-notification': {
     payload: { title: string; message: string };
+    // biome-ignore lint/suspicious/noConfusingVoidType: response needs to be void to match implicitly void callbacks
     response: void;
   };
 }
@@ -63,7 +65,11 @@ export function addMessageListener<T extends MessageType>(
     sender: chrome.runtime.MessageSender
   ) => Promise<MessageMap[T]['response']> | MessageMap[T]['response']
 ) {
-  const listener = (message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+  const listener = (
+    message: any,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: any) => void
+  ) => {
     if (message?.type === type) {
       const result = handler(message.payload, sender);
       if (result instanceof Promise) {

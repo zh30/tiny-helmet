@@ -17,7 +17,7 @@ describe('Button', () => {
     render(
       <Button variant="destructive" size="sm" className="shadow-lg">
         Remove
-      </Button>,
+      </Button>
     );
 
     const button = screen.getByRole('button', { name: 'Remove' });
@@ -36,7 +36,7 @@ describe('Button', () => {
     render(
       <Button asChild>
         <a href="#details">Details</a>
-      </Button>,
+      </Button>
     );
 
     const link = screen.getByRole('link', { name: 'Details' });

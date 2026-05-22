@@ -1,8 +1,4 @@
-import {
-  extensionConfig,
-  isHostAllowed,
-  type ExtensionSettings,
-} from '@/shared/config/extension';
+import { type ExtensionSettings, extensionConfig, isHostAllowed } from '@/shared/config/extension';
 import { parseUrl } from '@/shared/lib/utils';
 import { loadSettings, saveSettings, subscribeToSettings } from '@/shared/platform/storage';
 
@@ -76,8 +72,8 @@ async function syncSidePanel(tabId: number, url?: string | null) {
 
   const shouldEnable = Boolean(
     hostname &&
-    (isHostAllowed(hostname) ||
-      (cachedSettings.sidePanel.autoOpen && cachedSettings.pinnedHosts.includes(hostname)))
+      (isHostAllowed(hostname) ||
+        (cachedSettings.sidePanel.autoOpen && cachedSettings.pinnedHosts.includes(hostname)))
   );
 
   try {

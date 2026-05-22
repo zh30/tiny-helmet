@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import {
-  extensionConfig,
   type ExtensionSettings,
+  extensionConfig,
   type ThemePreference,
 } from '@/shared/config/extension';
 import { loadSettings, saveSettings, subscribeToSettings } from '@/shared/platform/storage';

@@ -1,6 +1,6 @@
 // @ts-check
 
-const path = require('path');
+const path = require('node:path');
 const { defineConfig } = require('@rspack/cli');
 const rspack = require('@rspack/core');
 
@@ -76,16 +76,16 @@ module.exports = (_env, argv) => {
           test: /\.(png|jpe?g|gif|svg|ico|webp|avif)$/i,
           type: 'asset/resource',
           generator: {
-            filename: 'assets/[name][ext]'
-          }
+            filename: 'assets/[name][ext]',
+          },
         },
         {
           test: /\.(woff2?|ttf|otf|eot)$/i,
           type: 'asset/resource',
           generator: {
-            filename: 'assets/fonts/[name][ext]'
-          }
-        }
+            filename: 'assets/fonts/[name][ext]',
+          },
+        },
       ],
     },
     plugins: [

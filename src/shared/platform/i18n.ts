@@ -1,4 +1,8 @@
-export function getMessage(key: string, fallback?: string, substitutions?: string | string[]): string {
+export function getMessage(
+  key: string,
+  fallback?: string,
+  substitutions?: string | string[]
+): string {
   if (typeof chrome !== 'undefined' && chrome.i18n?.getMessage) {
     const value = chrome.i18n.getMessage(key, substitutions ?? undefined);
     if (value) {
@@ -16,6 +20,6 @@ export function getExtensionName(): string {
 export function getExtensionDescription(): string {
   return getMessage(
     'extension_description',
-    'A modern Chrome extension scaffold for rapid MV3 development.',
+    'A modern Chrome extension scaffold for rapid MV3 development.'
   );
 }

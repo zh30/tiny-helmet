@@ -1,14 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
-  extensionConfig,
   type ExtensionSettings,
+  extensionConfig,
   SETTINGS_STORAGE_KEY,
 } from '@/shared/config/extension';
-import {
-  loadSettings,
-  saveSettings,
-  subscribeToSettings,
-} from '@/shared/platform/storage';
+import { loadSettings, saveSettings, subscribeToSettings } from '@/shared/platform/storage';
 
 const chromeStorageGet = vi.fn();
 const chromeStorageSet = vi.fn();
@@ -28,12 +24,12 @@ const chromeMock = {
     },
     onChanged: {
       addListener: (
-        listener: (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void,
+        listener: (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void
       ) => {
         changeListeners.push(listener);
       },
       removeListener: (
-        listener: (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void,
+        listener: (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void
       ) => {
         const index = changeListeners.indexOf(listener);
         if (index !== -1) {
@@ -41,7 +37,7 @@ const chromeMock = {
         }
       },
       hasListener: (
-        listener: (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void,
+        listener: (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void
       ) => changeListeners.includes(listener),
       hasListeners: () => changeListeners.length > 0,
     },
@@ -58,8 +54,8 @@ function emitStorageChange(change: Partial<ExtensionSettings>) {
           newValue: change,
         },
       },
-      'sync',
-    ),
+      'sync'
+    )
   );
 }
 
@@ -109,7 +105,7 @@ describe('storage helpers', () => {
       {
         [SETTINGS_STORAGE_KEY]: result,
       },
-      expect.any(Function),
+      expect.any(Function)
     );
   });
 

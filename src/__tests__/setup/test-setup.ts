@@ -6,7 +6,7 @@ const globalWithChrome = globalThis as typeof globalThis & {
 };
 
 type StorageChangeListener = Parameters<
-  NonNullable<typeof chrome.storage.onChanged['addListener']>
+  NonNullable<(typeof chrome.storage.onChanged)['addListener']>
 >[0];
 
 const storageChangeListeners = new Set<StorageChangeListener>();
@@ -34,7 +34,7 @@ const mockStorageChangeEmitter = {
 function createStorageArea(): chrome.storage.StorageArea {
   const getImpl = ((
     _keys?: string | string[] | Record<string, unknown> | null,
-    callback?: (items: Record<string, unknown>) => void,
+    callback?: (items: Record<string, unknown>) => void
   ) => {
     if (typeof callback === 'function') {
       callback({});
@@ -51,10 +51,7 @@ function createStorageArea(): chrome.storage.StorageArea {
     return Promise.resolve([] as string[]);
   }) as chrome.storage.StorageArea['getKeys'];
 
-  const getBytesImpl = ((
-    _keys?: string | string[],
-    callback?: (bytesInUse: number) => void,
-  ) => {
+  const getBytesImpl = ((_keys?: string | string[], callback?: (bytesInUse: number) => void) => {
     if (typeof callback === 'function') {
       callback(0);
       return;
@@ -62,7 +59,7 @@ function createStorageArea(): chrome.storage.StorageArea {
     return Promise.resolve(0);
   }) as chrome.storage.StorageArea['getBytesInUse'];
 
-  const setImpl = ((items: Record<string, unknown>, callback?: () => void) => {
+  const setImpl = ((_items: Record<string, unknown>, callback?: () => void) => {
     if (typeof callback === 'function') {
       callback();
       return;
@@ -70,7 +67,7 @@ function createStorageArea(): chrome.storage.StorageArea {
     return Promise.resolve();
   }) as chrome.storage.StorageArea['set'];
 
-  const removeImpl = ((keys: string | string[], callback?: () => void) => {
+  const removeImpl = ((_keys: string | string[], callback?: () => void) => {
     if (typeof callback === 'function') {
       callback();
       return;
@@ -87,8 +84,8 @@ function createStorageArea(): chrome.storage.StorageArea {
   }) as chrome.storage.StorageArea['clear'];
 
   const setAccessLevelImpl = ((
-    _options: {accessLevel: chrome.storage.AccessLevel},
-    callback?: () => void,
+    _options: { accessLevel: chrome.storage.AccessLevel },
+    callback?: () => void
   ) => {
     if (typeof callback === 'function') {
       callback();
@@ -132,7 +129,7 @@ type StorageAreaName = 'sync' | 'local' | 'managed';
 
 export const emitChromeStorageChange = (
   changes: Record<string, chrome.storage.StorageChange>,
-  areaName: StorageAreaName,
+  areaName: StorageAreaName
 ) => {
   storageChangeListeners.forEach((listener) => listener(changes, areaName));
 };

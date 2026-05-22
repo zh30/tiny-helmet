@@ -1,12 +1,8 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.1/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
   "root": true,
   "files": {
-    "ignore": [
-      "dist",
-      "node_modules",
-      "coverage"
-    ]
+    "includes": ["**", "!**/dist", "!**/node_modules", "!**/coverage"]
   },
   "formatter": {
     "enabled": true,
@@ -18,8 +14,13 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "style": {
-        "useSingleQuotes": "error"
+      "suspicious": {
+        "noExplicitAny": "off",
+        "useIterableCallbackReturn": "off"
+      },
+      "a11y": {
+        "useButtonType": "off",
+        "noSvgWithoutTitle": "off"
       }
     }
   },
@@ -27,10 +28,13 @@
     "formatter": {
       "quoteStyle": "single",
       "semicolons": "always",
-      "trailingComma": "es5"
+      "trailingCommas": "es5"
     }
   },
-  "organizeImports": {
-    "enabled": true
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
   }
 }

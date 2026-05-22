@@ -1,10 +1,5 @@
 import { vi } from 'vitest';
-import {
-  cn,
-  isChromeRuntimeAvailable,
-  isSidePanelSupported,
-  parseUrl,
-} from '@/shared/lib/utils';
+import { cn, isChromeRuntimeAvailable, isSidePanelSupported, parseUrl } from '@/shared/lib/utils';
 
 describe('cn', () => {
   it('merges class names while removing falsy values', () => {

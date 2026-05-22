@@ -33,14 +33,16 @@ function applyTheme(target: ThemeTarget, preference: ThemePreference, resolved: 
 
 export function useThemeSync(theme: ThemePreference, target?: ThemeTarget | null) {
   React.useEffect(() => {
-    const resolvedTarget: ThemeTarget | null = target ?? (typeof document !== 'undefined' ? document : null);
+    const resolvedTarget: ThemeTarget | null =
+      target ?? (typeof document !== 'undefined' ? document : null);
     if (!resolvedTarget) {
       return undefined;
     }
 
-    const media = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia(DARK_QUERY)
-      : null;
+    const media =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia(DARK_QUERY)
+        : null;
 
     const apply = (matches = media?.matches ?? false) => {
       const resolved = resolveTheme(theme, matches);

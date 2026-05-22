@@ -1,7 +1,7 @@
 import {
+  type ExtensionSettings,
   extensionConfig,
   SETTINGS_STORAGE_KEY,
-  type ExtensionSettings,
 } from '@/shared/config/extension';
 
 function cloneSettings(settings: ExtensionSettings): ExtensionSettings {
@@ -50,7 +50,9 @@ export async function loadSettings(): Promise<ExtensionSettings> {
   });
 }
 
-export async function saveSettings(partial: Partial<ExtensionSettings>): Promise<ExtensionSettings> {
+export async function saveSettings(
+  partial: Partial<ExtensionSettings>
+): Promise<ExtensionSettings> {
   const storage = getStorageArea();
   const current = await loadSettings();
   const next = mergeSettings({ ...current, ...partial });
@@ -71,15 +73,12 @@ export function subscribeToSettings(callback: (settings: ExtensionSettings) => v
     return () => undefined;
   }
 
-  const listener = (
-    changes: { [key: string]: chrome.storage.StorageChange },
-    areaName: string,
-  ) => {
+  const listener = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
     if (areaName !== 'sync' && areaName !== 'local') {
       return;
     }
 
-    if (!Object.prototype.hasOwnProperty.call(changes, SETTINGS_STORAGE_KEY)) {
+    if (!Object.hasOwn(changes, SETTINGS_STORAGE_KEY)) {
       return;
     }
 

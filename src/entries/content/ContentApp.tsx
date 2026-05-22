@@ -1,16 +1,12 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { Zap } from 'lucide-react';
 import * as React from 'react';
-import {
-  extensionConfig,
-  isHostAllowed,
-  type ExtensionSettings,
-} from '@/shared/config/extension';
+import { type ExtensionSettings, extensionConfig, isHostAllowed } from '@/shared/config/extension';
+import { useThemeSync } from '@/shared/hooks/useThemeSync';
 import { parseUrl } from '@/shared/lib/utils';
 import { getMessage } from '@/shared/platform/i18n';
-import { loadSettings, subscribeToSettings } from '@/shared/platform/storage';
-import { useThemeSync } from '@/shared/hooks/useThemeSync';
-import { motion, AnimatePresence } from 'framer-motion';
 import { sendMessage } from '@/shared/platform/messaging';
-import { Zap } from 'lucide-react';
+import { loadSettings, subscribeToSettings } from '@/shared/platform/storage';
 
 const PAGE_FLAG = 'data-tiny-helmet';
 
@@ -22,21 +18,16 @@ type ContentState = {
 
 const OPEN_LABEL = getMessage('content_open_side_panel', 'Open side panel');
 const READY_LABEL = getMessage('content_side_panel_ready', 'Side panel ready');
-const OPEN_ARIA_LABEL = getMessage(
-  'content_open_side_panel_aria',
-  'Open Tiny Helmet side panel',
-);
+const OPEN_ARIA_LABEL = getMessage('content_open_side_panel_aria', 'Open Tiny Helmet side panel');
 
 export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
   const url = React.useMemo(() => parseUrl(window.location.href), []);
   const hostname = url?.hostname.toLowerCase() ?? null;
-  const [{ status, settings, isAllowed }, setState] = React.useState<ContentState>(
-    () => ({
-      status: 'loading',
-      settings: extensionConfig.defaultSettings,
-      isAllowed: false,
-    }),
-  );
+  const [{ status, settings, isAllowed }, setState] = React.useState<ContentState>(() => ({
+    status: 'loading',
+    settings: extensionConfig.defaultSettings,
+    isAllowed: false,
+  }));
 
   const [selection, setSelection] = React.useState<{
     text: string;
@@ -61,7 +52,7 @@ export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
           // Use the last rect to position at the end of the selection
           const lastRect = rects[rects.length - 1];
 
-          const isInsideApp = e.composedPath().some(el => el === themeTarget);
+          const isInsideApp = e.composedPath().some((el) => el === themeTarget);
           if (isInsideApp) return;
 
           setSelection({
@@ -72,7 +63,7 @@ export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
           });
         } else {
           // If no text is selected, check if we clicked outside our app to hide
-          const isInsideApp = e.composedPath().some(el => el === themeTarget);
+          const isInsideApp = e.composedPath().some((el) => el === themeTarget);
           if (!isInsideApp) {
             setSelection((prev) => (prev.visible ? { ...prev, visible: false } : prev));
           }
@@ -112,14 +103,12 @@ export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
         return;
       }
 
-      const allowed =
-        isHostAllowed(hostname) || nextSettings.pinnedHosts.includes(hostname);
+      const allowed = isHostAllowed(hostname) || nextSettings.pinnedHosts.includes(hostname);
 
       setState({ status: 'ready', settings: nextSettings, isAllowed: allowed });
 
       unsub = subscribeToSettings((incoming) => {
-        const allowedHost =
-          isHostAllowed(hostname) || incoming.pinnedHosts.includes(hostname);
+        const allowedHost = isHostAllowed(hostname) || incoming.pinnedHosts.includes(hostname);
         setState({ status: 'ready', settings: incoming, isAllowed: allowedHost });
       });
     }
@@ -159,7 +148,7 @@ export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
         title: 'Text Action',
         message: `You selected: "${selection.text.substring(0, 30)}${selection.text.length > 30 ? '...' : ''}"`,
       });
-      setSelection(s => ({ ...s, visible: false }));
+      setSelection((s) => ({ ...s, visible: false }));
     } catch (error) {
       console.error('Failed to show notification', error);
     }
@@ -185,7 +174,7 @@ export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
               left: selection.x,
               top: selection.y,
               zIndex: 2147483647,
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
             <button

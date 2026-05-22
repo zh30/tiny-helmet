@@ -50,7 +50,7 @@ export const extensionConfig: ExtensionConfigShape = {
 export type DefaultAllowedHost = (typeof DEFAULT_ALLOWED_HOSTS)[number];
 
 export function isHostAllowed(hostname: string): boolean {
-  return extensionConfig.sidePanel.allowedHosts.some((allowed) =>
-    hostname === allowed || hostname.endsWith(`.${allowed}`)
+  return extensionConfig.sidePanel.allowedHosts.some(
+    (allowed) => hostname === allowed || hostname.endsWith(`.${allowed}`)
   );
 }

@@ -87,7 +87,7 @@ describe('useExtensionStore', () => {
           },
         },
       },
-      'sync',
+      'sync'
     );
 
     expect(useExtensionStore.getState().settings.theme).toBe('dark');
