@@ -47,7 +47,7 @@ describe('ContentApp', () => {
     mockedStorage.loadSettings.mockClear();
     mockedStorage.subscribeToSettings.mockClear();
     mockedParseUrl.mockReset();
-    document.getElementById('tiny-helmet-content-host')?.remove();
+    document.getElementById('crxkit-content-host')?.remove();
     themeTarget.remove();
   });
 

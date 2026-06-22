@@ -3,26 +3,59 @@
 const path = require('node:path');
 const { defineConfig } = require('@rspack/cli');
 const rspack = require('@rspack/core');
+const extensionConfig = require('./extension.config.json');
+const packageJson = require('./package.json');
+
+class ExtensionManifestPlugin {
+  constructor(manifest) {
+    this.manifest = manifest;
+  }
+
+  apply(compiler) {
+    compiler.hooks.thisCompilation.tap('ExtensionManifestPlugin', (compilation) => {
+      compilation.hooks.processAssets.tap(
+        {
+          name: 'ExtensionManifestPlugin',
+          stage: rspack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+        },
+        () => {
+          compilation.emitAsset(
+            'manifest.json',
+            new rspack.sources.RawSource(`${JSON.stringify(this.manifest, null, 2)}\n`)
+          );
+        }
+      );
+    });
+  }
+}
+
+async function loadBuildHelpers() {
+  const [{ generateManifest }, { createHtmlPluginOptions, createRspackEntries }] =
+    await Promise.all([
+      import('./scripts/lib/manifest.mjs'),
+      import('./scripts/lib/rspack-entries.mjs'),
+    ]);
+
+  return { generateManifest, createHtmlPluginOptions, createRspackEntries };
+}
 
 /**
  * @param {Record<string, any>} _env
  * @param {Record<string, any>} argv
  */
-module.exports = (_env, argv) => {
+module.exports = async (_env, argv) => {
+  const { generateManifest, createHtmlPluginOptions, createRspackEntries } =
+    await loadBuildHelpers();
   const mode = argv?.mode || process.env.NODE_ENV || 'development';
   const isProd = mode === 'production';
   const extensionEnv = process.env.EXTENSION_ENV || (isProd ? 'production' : 'development');
+  const manifest = generateManifest(extensionConfig, {
+    version: process.env.EXTENSION_VERSION || packageJson.version,
+  });
 
   return defineConfig({
     mode,
-    entry: {
-      popup: path.resolve(__dirname, 'src/entries/popup/main.tsx'),
-      sidePanel: path.resolve(__dirname, 'src/entries/side-panel/main.tsx'),
-      options: path.resolve(__dirname, 'src/entries/options/main.tsx'),
-      newTab: path.resolve(__dirname, 'src/entries/new-tab/main.tsx'),
-      background: path.resolve(__dirname, 'src/entries/background/index.ts'),
-      contentScript: path.resolve(__dirname, 'src/entries/content/index.ts'),
-    },
+    entry: createRspackEntries(extensionConfig, __dirname),
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: '[name].js',
@@ -100,34 +133,13 @@ module.exports = (_env, argv) => {
       new rspack.CssExtractRspackPlugin({
         filename: '[name].css',
       }),
-      new rspack.HtmlRspackPlugin({
-        template: path.resolve(__dirname, 'src/entries/popup/index.html'),
-        filename: 'popup.html',
-        chunks: ['popup'],
-        minify: isProd,
-      }),
-      new rspack.HtmlRspackPlugin({
-        template: path.resolve(__dirname, 'src/entries/side-panel/index.html'),
-        filename: 'sidePanel.html',
-        chunks: ['sidePanel'],
-        minify: isProd,
-      }),
-      new rspack.HtmlRspackPlugin({
-        template: path.resolve(__dirname, 'src/entries/options/index.html'),
-        filename: 'options.html',
-        chunks: ['options'],
-        minify: isProd,
-      }),
-      new rspack.HtmlRspackPlugin({
-        template: path.resolve(__dirname, 'src/entries/new-tab/index.html'),
-        filename: 'newTab.html',
-        chunks: ['newTab'],
-        minify: isProd,
-      }),
+      new ExtensionManifestPlugin(manifest),
+      ...createHtmlPluginOptions(extensionConfig, __dirname, isProd).map(
+        (options) => new rspack.HtmlRspackPlugin(options)
+      ),
       new rspack.CopyRspackPlugin({
         patterns: [
           { from: 'public', to: 'public' },
-          { from: 'src/manifest.json', to: 'manifest.json' },
           { from: '_locales', to: '_locales' },
         ],
       }),

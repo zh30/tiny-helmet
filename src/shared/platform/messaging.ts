@@ -4,23 +4,13 @@
  */
 
 export interface MessageMap {
-  'tiny-helmet:open-side-panel': {
+  'crxkit:open-side-panel': {
     payload: undefined;
     response: { ok: boolean; error?: string };
   };
-  'tiny-helmet:get-tab-info': {
+  'crxkit:get-tab-info': {
     payload: undefined;
     response: { url?: string; id?: number };
-  };
-  'tiny-helmet:sync-settings': {
-    payload: undefined;
-    // biome-ignore lint/suspicious/noConfusingVoidType: response needs to be void to match implicitly void callbacks
-    response: void;
-  };
-  'tiny-helmet:show-notification': {
-    payload: { title: string; message: string };
-    // biome-ignore lint/suspicious/noConfusingVoidType: response needs to be void to match implicitly void callbacks
-    response: void;
   };
 }
 

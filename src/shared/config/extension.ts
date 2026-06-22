@@ -1,3 +1,5 @@
+import rootConfig from '../../../extension.config.json';
+
 export type ThemePreference = 'light' | 'dark' | 'system';
 
 export interface ExtensionSettings {
@@ -8,20 +10,11 @@ export interface ExtensionSettings {
   };
 }
 
-export const EXTENSION_NAMESPACE = 'tiny-helmet';
+export const EXTENSION_NAMESPACE = rootConfig.namespace;
 export const SETTINGS_STORAGE_KEY = `${EXTENSION_NAMESPACE}:settings` as const;
 
-const DEFAULT_ALLOWED_HOSTS = ['localhost', 'zhanghe.dev'] as const;
-
-const defaultSettings: ExtensionSettings = {
-  theme: 'system',
-  pinnedHosts: [],
-  sidePanel: {
-    autoOpen: true,
-  },
-};
-
 interface ExtensionConfigShape {
+  namespace: string;
   popup: { assetPath: string };
   sidePanel: { assetPath: string; allowedHosts: readonly string[] };
   background: { assetPath: string };
@@ -29,25 +22,30 @@ interface ExtensionConfigShape {
   defaultSettings: ExtensionSettings;
 }
 
+const configuredEntries = rootConfig.entries;
+const defaultSettings = rootConfig.settings as ExtensionSettings;
+const defaultAllowedHosts = rootConfig.sidePanel.allowedHosts;
+
 export const extensionConfig: ExtensionConfigShape = {
+  namespace: rootConfig.namespace,
   popup: {
-    assetPath: 'popup.html',
+    assetPath: configuredEntries.popup.output,
   },
   sidePanel: {
-    assetPath: 'sidePanel.html',
-    allowedHosts: DEFAULT_ALLOWED_HOSTS,
+    assetPath: configuredEntries.sidePanel.output,
+    allowedHosts: defaultAllowedHosts,
   },
   background: {
-    assetPath: 'background.js',
+    assetPath: configuredEntries.background.output,
   },
   contentScript: {
-    matches: ['*://localhost/*', '*://*.zhanghe.dev/*'],
-    runAt: 'document_idle',
+    matches: [...configuredEntries.contentScript.matches],
+    runAt: configuredEntries.contentScript.runAt as 'document_idle',
   },
   defaultSettings,
 };
 
-export type DefaultAllowedHost = (typeof DEFAULT_ALLOWED_HOSTS)[number];
+export type DefaultAllowedHost = (typeof defaultAllowedHosts)[number];
 
 export function isHostAllowed(hostname: string): boolean {
   return extensionConfig.sidePanel.allowedHosts.some(

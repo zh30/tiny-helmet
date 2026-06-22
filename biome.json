@@ -2,7 +2,15 @@
   "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
   "root": true,
   "files": {
-    "includes": ["**", "!**/dist", "!**/node_modules", "!**/coverage"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/node_modules",
+      "!**/coverage",
+      "!**/playwright-report",
+      "!**/test-results",
+      "!**/*.zip"
+    ]
   },
   "formatter": {
     "enabled": true,

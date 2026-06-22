@@ -1,6 +1,6 @@
 {
   "extension_name": {
-    "message": "Tiny Helmet",
+    "message": "CRXKit",
     "description": "The display name of the extension"
   },
   "extension_description": {
@@ -92,7 +92,7 @@
     "description": "Content script button label when auto-open is enabled"
   },
   "content_open_side_panel_aria": {
-    "message": "Open Tiny Helmet side panel",
+    "message": "Open CRXKit side panel",
     "description": "ARIA label for the floating button"
   },
   "sidepanel_status_ready": {

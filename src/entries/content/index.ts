@@ -5,8 +5,8 @@ import '@/styles/tailwind.css';
 
 import { ContentApp } from './ContentApp';
 
-const HOST_ID = 'tiny-helmet-content-host';
-const MOUNT_ID = 'tiny-helmet-content-mount';
+const HOST_ID = 'crxkit-content-host';
+const MOUNT_ID = 'crxkit-content-mount';
 
 function createMountTree() {
   const existingHost = document.getElementById(HOST_ID);
@@ -44,7 +44,7 @@ function createMountTree() {
 const { host, mount } = createMountTree();
 
 if (!mount) {
-  throw new Error('Unable to mount Tiny Helmet content UI');
+  throw new Error('Unable to mount CRXKit content UI');
 }
 
 const root = createRoot(mount);

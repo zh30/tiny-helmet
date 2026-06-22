@@ -1,6 +1,6 @@
 {
   "extension_name": {
-    "message": "Tiny Helmet",
+    "message": "CRXKit",
     "description": "扩展显示名称"
   },
   "extension_description": {
@@ -92,7 +92,7 @@
     "description": "内容脚本在自动模式下的按钮文案"
   },
   "content_open_side_panel_aria": {
-    "message": "打开 Tiny Helmet 侧边栏",
+    "message": "打开 CRXKit 侧边栏",
     "description": "浮动按钮的 ARIA 标签"
   },
   "sidepanel_status_ready": {

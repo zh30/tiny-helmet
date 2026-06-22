@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CRXKit Extension Config",
+  "type": "object",
+  "required": [
+    "namespace",
+    "minimumChromeVersion",
+    "defaultLocale",
+    "manifest",
+    "permissions",
+    "hostPermissions",
+    "webAccessibleResources",
+    "sidePanel",
+    "settings",
+    "entries"
+  ],
+  "properties": {
+    "namespace": { "type": "string", "minLength": 1 },
+    "minimumChromeVersion": { "type": "string", "minLength": 1 },
+    "defaultLocale": { "type": "string", "minLength": 2 },
+    "manifest": {
+      "type": "object",
+      "required": ["nameMessage", "descriptionMessage", "version", "icons"],
+      "properties": {
+        "nameMessage": { "type": "string", "minLength": 1 },
+        "descriptionMessage": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "icons": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+    "permissions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "hostPermissions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "webAccessibleResources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sidePanel": {
+      "type": "object",
+      "required": ["autoOpenDefault", "allowedHosts"],
+      "properties": {
+        "autoOpenDefault": { "type": "boolean" },
+        "allowedHosts": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "settings": { "type": "object" },
+    "entries": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["kind", "input", "output"],
+        "properties": {
+          "kind": {
+            "enum": ["page", "content", "background", "popup", "side-panel", "options", "new-tab"]
+          },
+          "input": { "type": "string" },
+          "output": { "type": "string" },
+          "html": { "type": "string" },
+          "css": { "type": "string" },
+          "matches": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "runAt": { "enum": ["document_idle"] },
+          "openInTab": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

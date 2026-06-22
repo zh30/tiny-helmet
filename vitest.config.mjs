@@ -14,6 +14,9 @@ export default defineConfig({
     globals: true,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     setupFiles: ['src/__tests__/setup/test-setup.ts'],
+    pool: 'forks',
+    fileParallelism: false,
+    teardownTimeout: 2000,
     server: {
       deps: {
         inline: [/zustand/],
