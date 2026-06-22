@@ -1,18 +1,51 @@
 {
-  "name": "tiny-helmet",
+  "name": "crxkit",
   "version": "0.1.2",
-  "description": "A modern Rspack-powered Chrome extension scaffold with React, Tailwind CSS, shadcn UI, Zustand, and React Query.",
-  "main": "index.js",
+  "description": "A lightweight config-driven Chrome extension framework with React, Rspack, Tailwind CSS, Zustand, and a project-local CLI.",
+  "main": "./bin/crxkit.mjs",
+  "files": [
+    "bin",
+    "scripts",
+    "schemas",
+    "src",
+    "public",
+    "_locales",
+    "extension.config.json",
+    "rspack.config.js",
+    "tailwind.config.ts",
+    "postcss.config.js",
+    "tsconfig.json",
+    "biome.json",
+    "README.md"
+  ],
+  "bin": {
+    "crxkit": "./bin/crxkit.mjs",
+    "crx": "./bin/crxkit.mjs"
+  },
+  "exports": {
+    ".": "./bin/crxkit.mjs",
+    "./manifest": "./scripts/lib/manifest.mjs",
+    "./rspack-entries": "./scripts/lib/rspack-entries.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "rspack build --watch",
     "build": "rspack build --mode production",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "pnpm test:unit",
+    "test:unit": "vitest run --pool=forks --passWithNoTests",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:ci": "pnpm typecheck && pnpm check && pnpm test:unit && pnpm build && pnpm validate && pnpm test:e2e",
     "lint": "biome lint .",
     "format": "biome format --write .",
-    "check": "biome check ."
+    "check": "biome check .",
+    "crx": "node ./bin/crxkit.mjs",
+    "validate": "node ./bin/crxkit.mjs validate",
+    "package:zip": "node ./bin/crxkit.mjs package --out CrxKit.zip"
   },
   "keywords": [
     "browser",
@@ -26,9 +59,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zh30/tiny-helmet.git"
+    "url": "https://github.com/zh30/crxkit.git"
   },
-  "homepage": "https://github.com/zh30/tiny-helmet#readme",
+  "homepage": "https://github.com/zh30/crxkit#readme",
   "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf",
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
@@ -44,15 +77,18 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@playwright/test": "1.61.0",
     "@rspack/cli": "^2.0.3",
     "@rspack/core": "^2.0.3",
     "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@biomejs/biome": "^2.4.15",
+    "@types/node": "^22.19.21",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
+    "@types/yazl": "3.3.1",
     "chrome-types": "^0.1.428",
     "css-loader": "^7.1.4",
     "jsdom": "^29.1.1",
@@ -61,6 +97,7 @@
     "tailwindcss": "^4.3.0",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.7",
+    "yazl": "3.3.1"
   }
 }

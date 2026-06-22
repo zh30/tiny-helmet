@@ -9,7 +9,7 @@ interface ManifestInfo {
 function readManifest(): ManifestInfo {
   if (typeof chrome === 'undefined' || !chrome.runtime?.getManifest) {
     return {
-      name: 'Tiny Helmet',
+      name: 'CRXKit',
       version: '0.0.0',
       description: 'Local development build',
     };
@@ -17,7 +17,7 @@ function readManifest(): ManifestInfo {
 
   const manifest = chrome.runtime.getManifest();
   return {
-    name: manifest.name ?? 'Tiny Helmet',
+    name: manifest.name ?? 'CRXKit',
     version: manifest.version ?? '0.0.0',
     description: manifest.description ?? 'Chrome extension scaffold',
   };

@@ -1,5 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 import * as React from 'react';
 import { type ExtensionSettings, extensionConfig, isHostAllowed } from '@/shared/config/extension';
 import { useThemeSync } from '@/shared/hooks/useThemeSync';
@@ -8,7 +7,7 @@ import { getMessage } from '@/shared/platform/i18n';
 import { sendMessage } from '@/shared/platform/messaging';
 import { loadSettings, subscribeToSettings } from '@/shared/platform/storage';
 
-const PAGE_FLAG = 'data-tiny-helmet';
+const PAGE_FLAG = 'data-crxkit';
 
 type ContentState = {
   status: 'loading' | 'ready';
@@ -18,7 +17,7 @@ type ContentState = {
 
 const OPEN_LABEL = getMessage('content_open_side_panel', 'Open side panel');
 const READY_LABEL = getMessage('content_side_panel_ready', 'Side panel ready');
-const OPEN_ARIA_LABEL = getMessage('content_open_side_panel_aria', 'Open Tiny Helmet side panel');
+const OPEN_ARIA_LABEL = getMessage('content_open_side_panel_aria', 'Open CRXKit side panel');
 
 export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
   const url = React.useMemo(() => parseUrl(window.location.href), []);
@@ -28,64 +27,6 @@ export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
     settings: extensionConfig.defaultSettings,
     isAllowed: false,
   }));
-
-  const [selection, setSelection] = React.useState<{
-    text: string;
-    x: number;
-    y: number;
-    visible: boolean;
-  }>({ text: '', x: 0, y: 0, visible: false });
-
-  React.useEffect(() => {
-    const handleMouseUp = (e: MouseEvent) => {
-      // Small delay to ensure selection is processed by browser
-      setTimeout(() => {
-        const sel = window.getSelection();
-        const selectedText = sel?.toString().trim();
-
-        if (selectedText && selectedText.length > 0 && sel && sel.rangeCount > 0) {
-          const range = sel.getRangeAt(0);
-          const rects = range.getClientRects();
-
-          if (rects.length === 0) return;
-
-          // Use the last rect to position at the end of the selection
-          const lastRect = rects[rects.length - 1];
-
-          const isInsideApp = e.composedPath().some((el) => el === themeTarget);
-          if (isInsideApp) return;
-
-          setSelection({
-            text: selectedText,
-            x: lastRect.right + 2,
-            y: lastRect.bottom + 2,
-            visible: true,
-          });
-        } else {
-          // If no text is selected, check if we clicked outside our app to hide
-          const isInsideApp = e.composedPath().some((el) => el === themeTarget);
-          if (!isInsideApp) {
-            setSelection((prev) => (prev.visible ? { ...prev, visible: false } : prev));
-          }
-        }
-      }, 150);
-    };
-
-    const handleMouseDown = (e: MouseEvent) => {
-      // If clicking outside our mount point (Shadow DOM), hide the popover
-      const isInsideApp = e.composedPath().some((el) => el === themeTarget);
-      if (!isInsideApp) {
-        setSelection((prev) => (prev.visible ? { ...prev, visible: false } : prev));
-      }
-    };
-
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('mousedown', handleMouseDown);
-    return () => {
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('mousedown', handleMouseDown);
-    };
-  }, [themeTarget]);
 
   React.useEffect(() => {
     let unsub: (() => void) | null = null;
@@ -136,23 +77,11 @@ export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
 
   const handleOpenSidePanel = React.useCallback(async () => {
     try {
-      await sendMessage('tiny-helmet:open-side-panel', undefined);
+      await sendMessage('crxkit:open-side-panel', undefined);
     } catch (error) {
       console.error('Failed to open side panel from content script', error);
     }
   }, []);
-
-  const handleSelectionClick = React.useCallback(async () => {
-    try {
-      await sendMessage('tiny-helmet:show-notification', {
-        title: 'Text Action',
-        message: `You selected: "${selection.text.substring(0, 30)}${selection.text.length > 30 ? '...' : ''}"`,
-      });
-      setSelection((s) => ({ ...s, visible: false }));
-    } catch (error) {
-      console.error('Failed to show notification', error);
-    }
-  }, [selection.text]);
 
   if (!hostname || status === 'loading') {
     return null;
@@ -161,52 +90,24 @@ export function ContentApp({ themeTarget }: { themeTarget: HTMLElement }) {
   const autoOpen = settings.sidePanel.autoOpen;
   const label = autoOpen ? READY_LABEL : OPEN_LABEL;
 
-  return (
-    <>
-      <AnimatePresence>
-        {selection.visible && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            style={{
-              position: 'fixed',
-              left: selection.x,
-              top: selection.y,
-              zIndex: 2147483647,
-              cursor: 'pointer',
-            }}
-          >
-            <button
-              onClick={handleSelectionClick}
-              className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white shadow-xl hover:scale-110 active:scale-90 transition-transform premium-shadow border border-white/20 glass cursor-pointer"
-              title="Click to process selection"
-            >
-              <Zap className="h-5 w-5" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+  if (!isAllowed) {
+    return null;
+  }
 
-      {isAllowed && (
-        <motion.button
-          type="button"
-          initial={{ opacity: 0, scale: 0.9, x: 20 }}
-          animate={{ opacity: 1, scale: 1, x: 0 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="fixed bottom-8 right-8 z-2147483647 flex items-center gap-3 rounded-2xl border border-white/20 bg-primary/90 px-5 py-3 text-sm font-bold text-primary-foreground shadow-2xl backdrop-blur-xl transition-all duration-300 premium-shadow hover:bg-primary cursor-pointer"
-          aria-label={`${OPEN_ARIA_LABEL} (${hostname})`}
-          data-host={hostname}
-          onClick={handleOpenSidePanel}
-        >
-          <div className="relative flex h-3 w-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-foreground opacity-75" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-primary-foreground" />
-          </div>
-          <span className="tracking-tight">{label}</span>
-        </motion.button>
-      )}
-    </>
+  return (
+    <motion.button
+      type="button"
+      initial={{ opacity: 0, scale: 0.9, x: 20 }}
+      animate={{ opacity: 1, scale: 1, x: 0 }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="fixed bottom-8 right-8 z-2147483647 flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-colors hover:bg-primary/90"
+      aria-label={`${OPEN_ARIA_LABEL} (${hostname})`}
+      data-host={hostname}
+      onClick={handleOpenSidePanel}
+    >
+      <span className="h-2 w-2 rounded-full bg-primary-foreground" />
+      <span>{label}</span>
+    </motion.button>
   );
 }

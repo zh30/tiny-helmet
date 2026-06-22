@@ -86,7 +86,7 @@ function PopupApp() {
     }
 
     try {
-      await sendMessage('tiny-helmet:open-side-panel', undefined);
+      await sendMessage('crxkit:open-side-panel', undefined);
     } catch (error) {
       console.error('Failed to open side panel', error);
     }

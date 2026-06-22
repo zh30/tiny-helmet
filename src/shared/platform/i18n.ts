@@ -14,7 +14,7 @@ export function getMessage(
 }
 
 export function getExtensionName(): string {
-  return getMessage('extension_name', 'Tiny Helmet');
+  return getMessage('extension_name', 'CRXKit');
 }
 
 export function getExtensionDescription(): string {

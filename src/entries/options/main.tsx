@@ -1,276 +1,128 @@
 import '@/styles/tailwind.css';
 
 import { clsx } from 'clsx';
-import { motion } from 'framer-motion';
-import {
-  ExternalLink,
-  Globe,
-  Laptop,
-  Layout,
-  MoonStar,
-  Palette,
-  Settings,
-  Shield,
-} from 'lucide-react';
+import { Laptop, MoonStar, Settings, SunMedium } from 'lucide-react';
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { useExtensionHydration } from '@/shared/hooks/useExtensionHydration';
 import { useThemeSync } from '@/shared/hooks/useThemeSync';
+import { getExtensionName, getMessage } from '@/shared/platform/i18n';
 import { AppProviders } from '@/shared/providers/AppProviders';
 import { useExtensionStore } from '@/shared/state/useExtensionStore';
-import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
-const Github = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    {...props}
-    role="img"
-    aria-label="GitHub"
-    viewBox="0 0 24 24"
-    width="24"
-    height="24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-    <path d="M9 18c-4.51 2-5-2-7-2" />
-  </svg>
-);
-
-const SECTIONS = [
-  { id: 'general', label: 'General', icon: Settings },
-  { id: 'appearance', label: 'Appearance', icon: Palette },
-  { id: 'privacy', label: 'Privacy & Hosts', icon: Shield },
-  { id: 'advanced', label: 'Advanced', icon: Layout },
+const THEMES = [
+  { value: 'system', label: 'System', icon: Laptop },
+  { value: 'light', label: 'Light', icon: SunMedium },
+  { value: 'dark', label: 'Dark', icon: MoonStar },
 ] as const;
 
 function OptionsApp() {
   const { loading } = useExtensionHydration();
   const { settings, setTheme, setSidePanelAutoOpen } = useExtensionStore();
-  const [activeTab, setActiveTab] = React.useState<(typeof SECTIONS)[number]['id']>('general');
-
   const currentTheme = settings.theme ?? 'system';
+  const extensionName = getExtensionName();
+
   useThemeSync(currentTheme);
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent"
-        />
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
+        <p className="text-sm text-muted-foreground">
+          {getMessage('popup_status_loading', 'Loading preferences...')}
+        </p>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background font-sans antialiased text-foreground">
-      {/* Background decoration */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-[10%] -left-[10%] h-[40%] w-[40%] rounded-full bg-primary/5 blur-[120px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] h-[40%] w-[40%] rounded-full bg-primary/10 blur-[120px]" />
-      </div>
-
-      <div className="container max-w-6xl py-12 px-6 lg:px-8">
-        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-2"
-          >
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider">
-              <Settings className="h-3 w-3" />
-              <span>Configuration</span>
-            </div>
-            <h1 className="text-5xl font-black tracking-tight text-gradient">Settings</h1>
-            <p className="text-muted-foreground text-lg max-w-md">
-              Customize your <span className="font-bold text-foreground">Tiny Helmet</span>{' '}
-              experience to perfectly fit your workflow.
+    <main className="min-h-screen bg-background px-6 py-10 font-sans text-foreground">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <header className="flex items-center gap-3">
+          <div className="rounded-md border bg-card p-2">
+            <Settings className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">{extensionName}</h1>
+            <p className="text-sm text-muted-foreground">
+              {getMessage('popup_preferences_description', 'Theme and side panel preferences.')}
             </p>
-          </motion.div>
-
-          <div className="flex gap-3">
-            <Button variant="outline" className="rounded-xl glass border-white/10" asChild>
-              <a href="https://github.com/zh30/tiny-helmet" target="_blank" rel="noreferrer">
-                <Github className="mr-2 h-4 w-4" />
-                GitHub
-              </a>
-            </Button>
-            <Button className="rounded-xl shadow-xl shadow-primary/20">Save Changes</Button>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-12">
-          <aside className="space-y-1">
-            {SECTIONS.map((section) => (
+        <Card>
+          <CardHeader>
+            <CardTitle>{getMessage('popup_preferences_title', 'Preferences')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <section className="space-y-3">
+              <h2 className="text-sm font-medium">{getMessage('popup_theme_label', 'Theme')}</h2>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {THEMES.map((theme) => {
+                  const Icon = theme.icon;
+                  return (
+                    <button
+                      type="button"
+                      key={theme.value}
+                      onClick={() => setTheme(theme.value)}
+                      className={clsx(
+                        'flex items-center gap-3 rounded-md border px-4 py-3 text-left text-sm transition-colors',
+                        currentTheme === theme.value
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'bg-card hover:bg-accent'
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{theme.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="flex items-center justify-between gap-4 rounded-md border bg-card px-4 py-3">
+              <div>
+                <h2 className="text-sm font-medium">
+                  {getMessage('popup_auto_open_label', 'Auto-open panel')}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {getMessage('popup_auto_open_hint', 'Launch side panel on allowed hosts.')}
+                </p>
+              </div>
               <button
                 type="button"
-                key={section.id}
-                onClick={() => setActiveTab(section.id)}
+                onClick={() => setSidePanelAutoOpen(!settings.sidePanel.autoOpen)}
                 className={clsx(
-                  'flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-200',
-                  activeTab === section.id
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]'
-                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                  'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors',
+                  settings.sidePanel.autoOpen ? 'bg-primary' : 'bg-muted'
                 )}
+                aria-pressed={settings.sidePanel.autoOpen}
               >
-                <section.icon className="h-4 w-4" />
-                {section.label}
+                <span
+                  className={clsx(
+                    'block h-5 w-5 rounded-full bg-background shadow transition-transform',
+                    settings.sidePanel.autoOpen ? 'translate-x-5' : 'translate-x-1'
+                  )}
+                />
               </button>
-            ))}
-          </aside>
-
-          <main>
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {activeTab === 'general' && (
-                <Card className="glass border-none premium-shadow overflow-hidden">
-                  <CardHeader className="p-8 pb-4">
-                    <CardTitle className="text-2xl font-black tracking-tight">General</CardTitle>
-                    <CardDescription className="text-base">
-                      Basic behavior and automation settings.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-8 pt-4 space-y-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-accent/20 border border-white/5">
-                      <div className="space-y-1">
-                        <h4 className="text-lg font-bold tracking-tight">Auto-open Side Panel</h4>
-                        <p className="text-sm text-muted-foreground max-w-md">
-                          Automatically expand the side panel when you navigate to a host in your
-                          allowlist.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setSidePanelAutoOpen(!settings.sidePanel.autoOpen)}
-                        className={clsx(
-                          'relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                          settings.sidePanel.autoOpen ? 'bg-primary' : 'bg-muted'
-                        )}
-                      >
-                        <span
-                          className={clsx(
-                            'pointer-events-none block h-5 w-5 rounded-full bg-background shadow-xl ring-0 transition-transform duration-300',
-                            settings.sidePanel.autoOpen ? 'translate-x-6' : 'translate-x-1'
-                          )}
-                        />
-                      </button>
-                    </div>
-
-                    <div className="p-6 rounded-2xl border border-dashed border-white/10 text-center">
-                      <p className="text-sm text-muted-foreground">More settings coming soon...</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {activeTab === 'appearance' && (
-                <Card className="glass border-none premium-shadow">
-                  <CardHeader className="p-8 pb-4">
-                    <CardTitle className="text-2xl font-black tracking-tight text-gradient">
-                      Appearance
-                    </CardTitle>
-                    <CardDescription className="text-base">
-                      Personalize how the extension looks.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-8 pt-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {(['light', 'dark', 'system'] as const).map((t) => (
-                        <button
-                          type="button"
-                          key={t}
-                          onClick={() => setTheme(t)}
-                          className={clsx(
-                            'group relative flex flex-col items-center gap-4 rounded-2xl border-2 p-6 transition-all duration-300',
-                            currentTheme === t
-                              ? 'border-primary bg-primary/5 shadow-xl shadow-primary/10'
-                              : 'border-white/5 bg-accent/10 hover:border-white/20 hover:bg-accent/20'
-                          )}
-                        >
-                          <div
-                            className={clsx(
-                              'rounded-xl p-4 transition-transform group-hover:scale-110',
-                              currentTheme === t
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-background text-muted-foreground'
-                            )}
-                          >
-                            {t === 'light' && <Palette className="h-8 w-8" />}
-                            {t === 'dark' && <MoonStar className="h-8 w-8" />}
-                            {t === 'system' && <Laptop className="h-8 w-8" />}
-                          </div>
-                          <span className="font-bold capitalize">{t} Mode</span>
-                          {currentTheme === t && (
-                            <motion.div
-                              layoutId="active-theme"
-                              className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary"
-                            />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Fallback for other tabs */}
-              {activeTab !== 'general' && activeTab !== 'appearance' && (
-                <Card className="glass premium-shadow border-dashed">
-                  <div className="flex flex-col items-center justify-center p-20 text-center space-y-4">
-                    <div className="rounded-full bg-accent/30 p-6">
-                      <Globe className="h-12 w-12 text-muted-foreground/40" />
-                    </div>
-                    <h3 className="text-xl font-bold">Planned Feature</h3>
-                    <p className="text-muted-foreground max-w-xs">
-                      We're working hard to bring you more customization options in the near future.
-                    </p>
-                  </div>
-                </Card>
-              )}
-            </motion.div>
-          </main>
-        </div>
-
-        <footer className="mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium text-muted-foreground">
-          <p>© 2025 Tiny Helmet Scaffold. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#privacy" className="hover:text-primary transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#terms" className="hover:text-primary transition-colors">
-              Terms of Service
-            </a>
-            <a
-              href="https://github.com/zh30"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1 hover:text-primary transition-colors"
-            >
-              Built by zh30 <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-        </footer>
+            </section>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </main>
   );
 }
 
 const container = document.getElementById('root');
-if (container) {
-  createRoot(container).render(
-    <React.StrictMode>
-      <AppProviders>
-        <OptionsApp />
-      </AppProviders>
-    </React.StrictMode>
-  );
+
+if (!container) {
+  throw new Error('Options root element missing');
 }
+
+createRoot(container).render(
+  <React.StrictMode>
+    <AppProviders>
+      <OptionsApp />
+    </AppProviders>
+  </React.StrictMode>
+);

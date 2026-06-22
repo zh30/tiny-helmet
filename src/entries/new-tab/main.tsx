@@ -1,66 +1,41 @@
 import '@/styles/tailwind.css';
 
-import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
+import { useChromeManifest } from '@/shared/hooks/useChromeManifest';
+import { getExtensionName } from '@/shared/platform/i18n';
 import { AppProviders } from '@/shared/providers/AppProviders';
+import { Button } from '@/shared/ui/button';
 
 function NewTabApp() {
+  const { data: manifest } = useChromeManifest();
+  const extensionName = manifest?.name ?? getExtensionName();
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-background to-accent/20 p-4 font-sans antialiased selection:bg-primary/20">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="text-center"
-      >
-        <header className="mb-12">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-            className="mb-6 inline-block rounded-full bg-primary/10 p-4 text-primary shadow-inner"
-          >
-            <Sparkles className="h-12 w-12" />
-          </motion.div>
-          <h1 className="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-6xl font-black tracking-tighter text-transparent">
-            Hello, Explorer.
-          </h1>
-          <p className="mt-4 text-xl text-muted-foreground/80 font-medium">
-            Ready to shape the future of your browser?
-          </p>
-        </header>
-
-        <div className="flex gap-4">
-          <button
-            type="button"
-            className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground shadow-lg transition-all hover:scale-105 hover:bg-primary/90 active:scale-95"
-          >
-            Quick Actions
-          </button>
-          <button
-            type="button"
-            className="rounded-full bg-card px-8 py-3 font-semibold text-card-foreground shadow-md ring-1 ring-border transition-all hover:bg-accent/50 active:scale-95"
-          >
-            Settings
-          </button>
-        </div>
-      </motion.div>
-
-      <footer className="fixed bottom-8 text-sm text-muted-foreground/60">
-        <p>© 2026 Tiny Helmet Scaffold • Modern Chrome Extension</p>
-      </footer>
-    </div>
+    <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-background p-6 font-sans text-foreground">
+      <div className="text-center">
+        <h1 className="text-3xl font-semibold tracking-tight">{extensionName}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Chrome extension framework starter</p>
+      </div>
+      <Button type="button" onClick={() => chrome.runtime.openOptionsPage()}>
+        <Settings className="mr-2 h-4 w-4" />
+        Open settings
+      </Button>
+    </main>
   );
 }
 
 const container = document.getElementById('root');
-if (container) {
-  createRoot(container).render(
-    <React.StrictMode>
-      <AppProviders>
-        <NewTabApp />
-      </AppProviders>
-    </React.StrictMode>
-  );
+
+if (!container) {
+  throw new Error('New tab root element missing');
 }
+
+createRoot(container).render(
+  <React.StrictMode>
+    <AppProviders>
+      <NewTabApp />
+    </AppProviders>
+  </React.StrictMode>
+);

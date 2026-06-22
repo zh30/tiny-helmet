@@ -2,7 +2,7 @@ import '@/styles/tailwind.css';
 
 import { clsx } from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Globe, Info, LayoutTemplate, Pin, PinOff } from 'lucide-react';
+import { Globe, Info, LayoutTemplate, Pin, PinOff, Shield } from 'lucide-react';
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -209,7 +209,7 @@ function SidePanelApp() {
 
       <footer className="p-6 shrink-0 border-t border-white/5 bg-background/50">
         <p className="text-[10px] font-bold text-center text-muted-foreground/30 uppercase tracking-[0.2em]">
-          Tiny Helmet Scaffold v{manifest?.version ?? '0.1.0'}
+          CRXKit Scaffold v{manifest?.version ?? '0.1.0'}
         </p>
       </footer>
     </div>
@@ -227,22 +227,4 @@ createRoot(container).render(
       <SidePanelApp />
     </AppProviders>
   </React.StrictMode>
-);
-
-// Minimal Shield import for the icon used in list header
-const Shield = (props: any) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-  </svg>
 );

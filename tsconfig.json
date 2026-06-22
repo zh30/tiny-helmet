@@ -13,7 +13,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["chrome-types", "vitest/globals"],
+    "types": ["chrome-types", "vitest/globals", "node"],
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
