@@ -96,6 +96,48 @@ describe('generateManifest', () => {
       },
     ]);
   });
+
+  it('supports devtools, commands, omnibox, and firefox target', () => {
+    const extendedConfig = {
+      ...baseConfig,
+      commands: {
+        _execute_action: {
+          suggested_key: { default: 'Ctrl+Shift+Y', mac: 'Command+Shift+Y' },
+          description: 'Toggle popup',
+        },
+      },
+      omnibox: {
+        keyword: 'crx',
+      },
+      firefox: {
+        id: 'crxkit@test.local',
+        minVersion: '115.0',
+      },
+      entries: {
+        ...baseConfig.entries,
+        devtools: {
+          kind: 'devtools' as const,
+          input: 'src/entries/devtools/main.ts',
+          html: 'src/entries/devtools/index.html',
+          output: 'devtools.html',
+        },
+      },
+    };
+
+    const chromeManifest = generateManifest(extendedConfig, { version: '1.0.0', target: 'chrome' });
+    expect(chromeManifest.devtools_page).toBe('devtools.html');
+    expect(chromeManifest.commands).toBeDefined();
+    expect(chromeManifest.omnibox?.keyword).toBe('crx');
+    expect(chromeManifest.minimum_chrome_version).toBe('114');
+
+    const firefoxManifest = generateManifest(extendedConfig, {
+      version: '1.0.0',
+      target: 'firefox',
+    });
+    expect(firefoxManifest.browser_specific_settings?.gecko?.id).toBe('crxkit@test.local');
+    expect(firefoxManifest.background).toEqual({ scripts: ['background.js'] });
+    expect(firefoxManifest.sidebar_action?.default_panel).toBe('sidePanel.html');
+  });
 });
 
 describe('validateExtensionConfig', () => {

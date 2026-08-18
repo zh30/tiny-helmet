@@ -32,23 +32,43 @@ const mockStorageChangeEmitter = {
 };
 
 function createStorageArea(): chrome.storage.StorageArea {
+  const store = new Map<string, unknown>();
+
   const getImpl = ((
-    _keys?: string | string[] | Record<string, unknown> | null,
+    keys?: string | string[] | Record<string, unknown> | null,
     callback?: (items: Record<string, unknown>) => void
   ) => {
+    const result: Record<string, unknown> = {};
+    if (typeof keys === 'string') {
+      if (store.has(keys)) result[keys] = store.get(keys);
+    } else if (Array.isArray(keys)) {
+      keys.forEach((k) => {
+        if (store.has(k)) result[k] = store.get(k);
+      });
+    } else if (keys && typeof keys === 'object') {
+      Object.keys(keys).forEach((k) => {
+        result[k] = store.has(k) ? store.get(k) : keys[k];
+      });
+    } else {
+      store.forEach((v, k) => {
+        result[k] = v;
+      });
+    }
+
     if (typeof callback === 'function') {
-      callback({});
+      callback(result);
       return;
     }
-    return Promise.resolve({} as Record<string, unknown>);
+    return Promise.resolve(result);
   }) as chrome.storage.StorageArea['get'];
 
   const getKeysImpl = ((callback?: (keys: string[]) => void) => {
+    const keys = Array.from(store.keys());
     if (typeof callback === 'function') {
-      callback([]);
+      callback(keys);
       return;
     }
-    return Promise.resolve([] as string[]);
+    return Promise.resolve(keys);
   }) as chrome.storage.StorageArea['getKeys'];
 
   const getBytesImpl = ((_keys?: string | string[], callback?: (bytesInUse: number) => void) => {
@@ -59,7 +79,10 @@ function createStorageArea(): chrome.storage.StorageArea {
     return Promise.resolve(0);
   }) as chrome.storage.StorageArea['getBytesInUse'];
 
-  const setImpl = ((_items: Record<string, unknown>, callback?: () => void) => {
+  const setImpl = ((items: Record<string, unknown>, callback?: () => void) => {
+    Object.entries(items).forEach(([k, v]) => {
+      store.set(k, v);
+    });
     if (typeof callback === 'function') {
       callback();
       return;
@@ -67,7 +90,9 @@ function createStorageArea(): chrome.storage.StorageArea {
     return Promise.resolve();
   }) as chrome.storage.StorageArea['set'];
 
-  const removeImpl = ((_keys: string | string[], callback?: () => void) => {
+  const removeImpl = ((keys: string | string[], callback?: () => void) => {
+    const keyList = Array.isArray(keys) ? keys : [keys];
+    keyList.forEach((k) => store.delete(k));
     if (typeof callback === 'function') {
       callback();
       return;
@@ -76,6 +101,7 @@ function createStorageArea(): chrome.storage.StorageArea {
   }) as chrome.storage.StorageArea['remove'];
 
   const clearImpl = ((callback?: () => void) => {
+    store.clear();
     if (typeof callback === 'function') {
       callback();
       return;
@@ -107,16 +133,86 @@ function createStorageArea(): chrome.storage.StorageArea {
 }
 
 if (!globalWithChrome.chrome) {
+  const runtimeListeners = new Set<(message: any, sender: any, sendResponse: any) => any>();
+
   globalWithChrome.chrome = {
     runtime: {
       connect: () => ({ onDisconnect: { addListener: () => undefined } }),
-      sendMessage: () => Promise.resolve(undefined),
+      sendMessage: (message: any, optionsOrCallback?: any, callback?: any) => {
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        runtimeListeners.forEach((listener) => {
+          listener(message, { id: 'mock-extension' }, (response: any) => {
+            cb?.(response);
+          });
+        });
+        return Promise.resolve(undefined);
+      },
+      onMessage: {
+        addListener: (listener: any) => {
+          runtimeListeners.add(listener);
+        },
+        removeListener: (listener: any) => {
+          runtimeListeners.delete(listener);
+        },
+      },
+      onInstalled: {
+        addListener: vi.fn(),
+      },
+      getURL: (path: string) => `chrome-extension://mock-extension-id/${path}`,
+      openOptionsPage: vi.fn(),
       lastError: undefined,
     },
-    sidePanel: undefined,
+    tabs: {
+      query: vi.fn().mockResolvedValue([{ id: 1, url: 'https://example.com', active: true }]),
+      get: vi.fn().mockResolvedValue({ id: 1, url: 'https://example.com', active: true }),
+      sendMessage: vi
+        .fn()
+        .mockImplementation((_tabId: number, _msg: any, optsOrCb?: any, cb?: any) => {
+          const callback = typeof optsOrCb === 'function' ? optsOrCb : cb;
+          callback?.({ ok: true });
+          return Promise.resolve({ ok: true });
+        }),
+      onUpdated: {
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+      },
+      onActivated: {
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+      },
+    },
+    action: {
+      onClicked: {
+        addListener: vi.fn(),
+      },
+    },
+    commands: {
+      onCommand: {
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+      },
+    },
+    contextMenus: {
+      create: vi.fn(),
+      removeAll: vi.fn().mockImplementation((cb?: () => void) => cb?.()),
+      onClicked: {
+        addListener: vi.fn(),
+      },
+    },
+    offscreen: {
+      createDocument: vi.fn().mockResolvedValue(undefined),
+      closeDocument: vi.fn().mockResolvedValue(undefined),
+      hasDocument: vi.fn().mockResolvedValue(false),
+    },
+    sidePanel: {
+      setOptions: vi.fn().mockResolvedValue(undefined),
+      open: vi.fn().mockResolvedValue(undefined),
+    },
     storage: {
       local: createStorageArea(),
       sync: createStorageArea(),
+      session: createStorageArea(),
+      managed: createStorageArea(),
       onChanged: mockStorageChangeEmitter as unknown as typeof chrome.storage.onChanged,
     },
     i18n: {
@@ -125,7 +221,7 @@ if (!globalWithChrome.chrome) {
   } as unknown as typeof chrome;
 }
 
-type StorageAreaName = 'sync' | 'local' | 'managed';
+type StorageAreaName = 'sync' | 'local' | 'session' | 'managed';
 
 export const emitChromeStorageChange = (
   changes: Record<string, chrome.storage.StorageChange>,

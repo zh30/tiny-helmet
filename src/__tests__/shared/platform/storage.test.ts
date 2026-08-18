@@ -4,10 +4,19 @@ import {
   extensionConfig,
   SETTINGS_STORAGE_KEY,
 } from '@/shared/config/extension';
-import { loadSettings, saveSettings, subscribeToSettings } from '@/shared/platform/storage';
+import {
+  getStorageItem,
+  loadSettings,
+  removeStorageItem,
+  saveSettings,
+  setStorageItem,
+  subscribeToSettings,
+  subscribeToStorageKey,
+} from '@/shared/platform/storage';
 
 const chromeStorageGet = vi.fn();
 const chromeStorageSet = vi.fn();
+const chromeStorageRemove = vi.fn();
 const changeListeners: Array<
   (changes: Record<string, chrome.storage.StorageChange>, areaName: string) => void
 > = [];
@@ -17,7 +26,7 @@ const chromeMock = {
     sync: {
       get: chromeStorageGet,
       set: chromeStorageSet,
-      remove: vi.fn(),
+      remove: chromeStorageRemove,
       clear: vi.fn(),
       getBytesInUse: vi.fn(),
       getKeys: vi.fn(),
@@ -46,12 +55,12 @@ const chromeMock = {
 
 vi.stubGlobal('chrome', chromeMock);
 
-function emitStorageChange(change: Partial<ExtensionSettings>) {
+function emitStorageChange(key: string, newValue: unknown) {
   changeListeners.forEach((listener) =>
     listener(
       {
-        [SETTINGS_STORAGE_KEY]: {
-          newValue: change,
+        [key]: {
+          newValue,
         },
       },
       'sync'
@@ -123,10 +132,40 @@ describe('storage helpers', () => {
     const listener = vi.fn();
     const unsubscribe = subscribeToSettings(listener);
 
-    emitStorageChange({ ...extensionConfig.defaultSettings, theme: 'dark' });
+    emitStorageChange(SETTINGS_STORAGE_KEY, { ...extensionConfig.defaultSettings, theme: 'dark' });
 
     expect(listener).toHaveBeenCalled();
 
     unsubscribe();
+  });
+
+  it('supports generic getStorageItem, setStorageItem, removeStorageItem, and subscribeToStorageKey', async () => {
+    chromeStorageGet.mockImplementation((_keys, callback) => {
+      callback({ customKey: { count: 42 } });
+    });
+    chromeStorageSet.mockImplementation((_value, callback) => {
+      callback();
+    });
+    chromeStorageRemove.mockImplementation((_keys, callback) => {
+      callback();
+    });
+
+    const val = await getStorageItem('customKey', { count: 0 });
+    expect(val).toEqual({ count: 42 });
+
+    await setStorageItem('customKey', { count: 43 });
+    expect(chromeStorageSet).toHaveBeenCalledWith(
+      { customKey: { count: 43 } },
+      expect.any(Function)
+    );
+
+    await removeStorageItem('customKey');
+    expect(chromeStorageRemove).toHaveBeenCalledWith(['customKey'], expect.any(Function));
+
+    const keyListener = vi.fn();
+    const unsubKey = subscribeToStorageKey('customKey', keyListener);
+    emitStorageChange('customKey', { count: 100 });
+    expect(keyListener).toHaveBeenCalledWith({ count: 100 }, undefined);
+    unsubKey();
   });
 });

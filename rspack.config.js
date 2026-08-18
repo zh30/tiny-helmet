@@ -1,10 +1,35 @@
 // @ts-check
 
+const fs = require('node:fs');
 const path = require('node:path');
 const { defineConfig } = require('@rspack/cli');
 const rspack = require('@rspack/core');
 const extensionConfig = require('./extension.config.json');
 const packageJson = require('./package.json');
+
+// Helper to load simple .env files if present
+function loadEnvFile(envPath) {
+  if (!fs.existsSync(envPath)) return {};
+  const content = fs.readFileSync(envPath, 'utf8');
+  const env = {};
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const match = trimmed.match(/^([^=]+)=(.*)$/);
+    if (match) {
+      const key = match[1].trim();
+      let val = match[2].trim();
+      if (
+        (val.startsWith('"') && val.endsWith('"')) ||
+        (val.startsWith("'") && val.endsWith("'"))
+      ) {
+        val = val.slice(1, -1);
+      }
+      env[key] = val;
+    }
+  }
+  return env;
+}
 
 class ExtensionManifestPlugin {
   constructor(manifest) {
@@ -48,10 +73,29 @@ module.exports = async (_env, argv) => {
     await loadBuildHelpers();
   const mode = argv?.mode || process.env.NODE_ENV || 'development';
   const isProd = mode === 'production';
+  const target = process.env.EXTENSION_TARGET || 'chrome';
   const extensionEnv = process.env.EXTENSION_ENV || (isProd ? 'production' : 'development');
+
+  // Load .env and .env.[mode]
+  const baseEnv = loadEnvFile(path.resolve(__dirname, '.env'));
+  const modeEnv = loadEnvFile(path.resolve(__dirname, `.env.${mode}`));
+  const mergedEnv = { ...baseEnv, ...modeEnv };
+
   const manifest = generateManifest(extensionConfig, {
     version: process.env.EXTENSION_VERSION || packageJson.version,
+    target,
   });
+
+  const envDefinitions = {
+    'process.env.NODE_ENV': JSON.stringify(mode),
+    'process.env.EXTENSION_ENV': JSON.stringify(extensionEnv),
+    'process.env.EXTENSION_TARGET': JSON.stringify(target),
+    __DEV__: JSON.stringify(!isProd),
+  };
+
+  for (const [key, value] of Object.entries(mergedEnv)) {
+    envDefinitions[`process.env.${key}`] = JSON.stringify(value);
+  }
 
   return defineConfig({
     mode,
@@ -59,7 +103,7 @@ module.exports = async (_env, argv) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: '[name].js',
-      chunkFilename: '[name].js',
+      chunkFilename: 'chunks/[name].js',
       publicPath: '',
       globalObject: 'self',
       clean: true,
@@ -122,11 +166,7 @@ module.exports = async (_env, argv) => {
       ],
     },
     plugins: [
-      new rspack.DefinePlugin({
-        'process.env.NODE_ENV': JSON.stringify(mode),
-        'process.env.EXTENSION_ENV': JSON.stringify(extensionEnv),
-        __DEV__: JSON.stringify(!isProd),
-      }),
+      new rspack.DefinePlugin(envDefinitions),
       new rspack.ProvidePlugin({
         process: [require.resolve('process/browser')],
       }),

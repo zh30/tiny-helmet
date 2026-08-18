@@ -1,11 +1,22 @@
 export interface ExtensionEntry {
-  kind: 'popup' | 'side-panel' | 'options' | 'new-tab' | 'background' | 'content' | 'page';
+  kind:
+    | 'popup'
+    | 'side-panel'
+    | 'options'
+    | 'new-tab'
+    | 'background'
+    | 'content'
+    | 'page'
+    | 'devtools'
+    | 'offscreen'
+    | 'injected';
   input: string;
   output: string;
   html?: string;
   css?: string;
   matches?: readonly string[];
-  runAt?: 'document_idle';
+  world?: 'ISOLATED' | 'MAIN';
+  runAt?: 'document_start' | 'document_end' | 'document_idle';
   openInTab?: boolean;
 }
 
@@ -26,6 +37,33 @@ export interface ExtensionConfig {
     autoOpenDefault: boolean;
     allowedHosts: readonly string[];
   };
+  commands?: Record<
+    string,
+    {
+      suggested_key?: {
+        default?: string;
+        mac?: string;
+        windows?: string;
+        chromeos?: string;
+        linux?: string;
+      };
+      description?: string;
+    }
+  >;
+  omnibox?: {
+    keyword: string;
+  };
+  declarativeNetRequest?: {
+    rule_resources: Array<{
+      id: string;
+      enabled: boolean;
+      path: string;
+    }>;
+  };
+  firefox?: {
+    id?: string;
+    minVersion?: string;
+  };
   settings: {
     theme: 'light' | 'dark' | 'system';
     pinnedHosts: readonly string[];
@@ -41,9 +79,14 @@ export interface ValidationContext {
   localeMessages?: Record<string, Set<string>>;
 }
 
+export interface GenerateManifestOptions {
+  version?: string;
+  target?: 'chrome' | 'firefox' | 'safari' | 'edge';
+}
+
 export function generateManifest(
   config: ExtensionConfig,
-  packageMeta?: { version?: string }
+  options?: GenerateManifestOptions
 ): chrome.runtime.ManifestV3;
 
 export function validateExtensionConfig(

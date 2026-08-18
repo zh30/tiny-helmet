@@ -1,19 +1,34 @@
-import type { ExtensionConfig } from './manifest.mjs';
+import type { ExtensionConfig, ExtensionEntry } from './manifest.d.mts';
 
-export interface HtmlPluginOptions {
-  template: string;
-  filename: string;
-  chunks: string[];
-  minify: boolean;
+export interface CreateHtmlPluginOptionsConfig {
+  vendorChunk?: string;
+  splitVendor?: boolean;
 }
 
+export type ConfigWithEntries =
+  | ExtensionConfig
+  | {
+      entries?: Readonly<
+        Record<string, Partial<ExtensionEntry> & { input: string; output: string; html?: string }>
+      >;
+    };
+
 export function createRspackEntries(
-  config: Pick<ExtensionConfig, 'entries'>,
+  config: ConfigWithEntries,
   rootDir: string
 ): Record<string, string>;
 
+export interface HtmlPluginOption {
+  template: string;
+  filename: string;
+  chunks: string[];
+  chunksSortMode?: string;
+  minify: boolean;
+}
+
 export function createHtmlPluginOptions(
-  config: Pick<ExtensionConfig, 'entries'>,
+  config: ConfigWithEntries,
   rootDir: string,
-  minify: boolean
-): HtmlPluginOptions[];
+  minify: boolean,
+  options?: CreateHtmlPluginOptionsConfig
+): HtmlPluginOption[];

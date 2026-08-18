@@ -6,7 +6,15 @@ import { fileURLToPath } from 'node:url';
 import { generateManifest, validateExtensionConfig } from './manifest.mjs';
 
 const CONFIG_FILE = 'extension.config.json';
-const PAGE_KINDS = new Set(['page', 'popup', 'side-panel', 'options', 'new-tab']);
+const PAGE_KINDS = new Set([
+  'page',
+  'popup',
+  'side-panel',
+  'options',
+  'new-tab',
+  'devtools',
+  'offscreen',
+]);
 const ENTRY_KINDS = new Set([
   'page',
   'content',
@@ -15,6 +23,9 @@ const ENTRY_KINDS = new Set([
   'side-panel',
   'options',
   'new-tab',
+  'devtools',
+  'offscreen',
+  'injected',
 ]);
 
 function parseFlags(args) {
@@ -157,6 +168,31 @@ createRoot(container).render(
 `;
 }
 
+function devtoolsMainTemplate() {
+  return `chrome.devtools.panels.create(
+  'CRXKit',
+  'public/icon32.png',
+  'sidePanel.html',
+  (panel) => {
+    console.info('CRXKit devtools panel initialized', panel);
+  }
+);
+`;
+}
+
+function offscreenMainTemplate() {
+  return `console.info('CRXKit offscreen document loaded');
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === 'offscreen:ping') {
+    sendResponse({ ok: true, timestamp: Date.now() });
+    return true;
+  }
+  return undefined;
+});
+`;
+}
+
 function htmlTemplate(title) {
   return `<!doctype html>
 <html lang="en">
@@ -218,30 +254,42 @@ async function addEntry(cwd, args, io) {
   }
 
   const entryDir = path.join('src/entries', name);
-  const input = `${entryDir}/main.${PAGE_KINDS.has(kind) ? 'tsx' : 'ts'}`;
-  const output = kind === 'background' ? `${name}.js` : `${name}.js`;
+  const isPageKind = PAGE_KINDS.has(kind);
+  const isTsx = isPageKind && kind !== 'devtools' && kind !== 'offscreen';
+  const input = `${entryDir}/main.${isTsx ? 'tsx' : 'ts'}`;
+  const output = isPageKind ? `${name}.html` : `${name}.js`;
   const entry = {
     kind,
     input,
-    output: PAGE_KINDS.has(kind) ? `${name}.html` : output,
+    output,
   };
 
-  if (PAGE_KINDS.has(kind)) {
+  if (isPageKind) {
     entry.html = `${entryDir}/index.html`;
   }
 
   if (kind === 'content') {
     entry.matches = ['<all_urls>'];
     entry.runAt = 'document_idle';
+  } else if (kind === 'injected') {
+    entry.matches = ['<all_urls>'];
+    entry.world = 'MAIN';
+    entry.runAt = 'document_idle';
   }
 
   await mkdir(path.join(cwd, entryDir), { recursive: true });
 
-  if (PAGE_KINDS.has(kind)) {
+  if (kind === 'devtools') {
+    await writeFile(path.join(cwd, entry.input), devtoolsMainTemplate());
+    await writeFile(path.join(cwd, entry.html), htmlTemplate('DevTools'));
+  } else if (kind === 'offscreen') {
+    await writeFile(path.join(cwd, entry.input), offscreenMainTemplate());
+    await writeFile(path.join(cwd, entry.html), htmlTemplate('Offscreen Document'));
+  } else if (isPageKind) {
     const componentName = `${pascalCase(name)}App`;
     await writeFile(path.join(cwd, entry.input), pageMainTemplate(componentName));
     await writeFile(path.join(cwd, entry.html), htmlTemplate(name));
-  } else if (kind === 'content') {
+  } else if (kind === 'content' || kind === 'injected') {
     await writeFile(path.join(cwd, entry.input), contentTemplate(name));
   } else {
     await writeFile(path.join(cwd, entry.input), backgroundTemplate(name));
@@ -300,9 +348,11 @@ async function packageExtension(cwd, args, io) {
   const { flags } = parseFlags(args);
   const out = flags.out || 'CrxKit.zip';
   const version = flags.version;
+  const target = flags.target || 'chrome';
   const env = {
     ...process.env,
     ...(version ? { EXTENSION_VERSION: version } : {}),
+    ...(target ? { EXTENSION_TARGET: target } : {}),
   };
 
   const buildCode = await runCommand('pnpm', ['build'], { cwd, env });
@@ -312,7 +362,7 @@ async function packageExtension(cwd, args, io) {
   }
 
   await zipDirectory(path.join(cwd, 'dist'), path.resolve(cwd, out));
-  io.stdout(`Created ${out}.`);
+  io.stdout(`Created ${out} for target "${target}".`);
   return 0;
 }
 
@@ -365,10 +415,83 @@ async function createProject(cwd, args, io) {
   return 0;
 }
 
+async function runDoctor(cwd, io) {
+  io.stdout('🩺 Running CRXKit Health & Compliance Doctor...\n');
+  const issues = await validateProject(cwd);
+  const { config, packageJson } = await loadProject(cwd);
+
+  const passed = [];
+  const warnings = [];
+
+  // Check 1: Manifest config validation
+  if (issues.length === 0) {
+    passed.push('Extension config is structurally valid.');
+  } else {
+    issues.forEach((issue) => warnings.push(`[Config Issue] ${issue}`));
+  }
+
+  // Check 2: Icons
+  const icons = config.manifest?.icons ?? {};
+  for (const [size, iconPath] of Object.entries(icons)) {
+    if (await pathExists(path.join(cwd, iconPath))) {
+      passed.push(`Icon ${size}px found at ${iconPath}.`);
+    } else {
+      warnings.push(`Missing icon ${size}px at ${iconPath}.`);
+    }
+  }
+
+  // Check 3: Permissions audit
+  const highRiskPerms = ['<all_urls>', 'webRequestBlocking', 'debugger', 'management'];
+  const requestedHighRisk = (config.hostPermissions ?? [])
+    .concat(config.permissions ?? [])
+    .filter((p) => highRiskPerms.includes(p));
+
+  if (requestedHighRisk.length > 0) {
+    warnings.push(
+      `[Permission Notice] Broad permissions detected: ${requestedHighRisk.join(', ')}. Prepare justifications for Chrome Web Store review.`
+    );
+  } else {
+    passed.push('Permissions follow least-privilege guidelines.');
+  }
+
+  // Check 4: Locales check
+  const localeMessages = await loadLocaleMessages(cwd);
+  const localeCount = Object.keys(localeMessages).length;
+  if (localeCount > 0) {
+    passed.push(
+      `Found ${localeCount} locale definition(s): ${Object.keys(localeMessages).join(', ')}.`
+    );
+  } else {
+    warnings.push(
+      'No _locales directory found. Consider adding i18n support for store publication.'
+    );
+  }
+
+  io.stdout('📋 Diagnostic Report:');
+  passed.forEach((p) => io.stdout(`  ✓ ${p}`));
+  warnings.forEach((w) => io.stdout(`  ⚠ ${w}`));
+
+  io.stdout(
+    `\nExtension: ${packageJson.name} v${packageJson.version} (Namespace: ${config.namespace})`
+  );
+
+  if (warnings.length > 0) {
+    io.stdout(`\nDoctor finished with ${warnings.length} warning(s).`);
+    return 0;
+  }
+
+  io.stdout('\n🎉 All health checks passed perfectly!');
+  return 0;
+}
+
 async function printManifest(cwd, args, io) {
   const { flags } = parseFlags(args);
   const { config, packageJson } = await loadProject(cwd);
-  const manifest = generateManifest(config, packageJson);
+  const target = flags.target || 'chrome';
+  const manifest = generateManifest(config, {
+    version: packageJson.version,
+    target,
+  });
 
   if (flags.print) {
     io.stdout(JSON.stringify(manifest, null, 2));
@@ -400,7 +523,7 @@ export async function runCli(argv, io = {}) {
 
   try {
     if (!command || command === 'help' || command === '--help') {
-      stdout('Usage: crx <validate|manifest|entry|package|create>');
+      stdout('Usage: crx <validate|manifest|entry|package|doctor|create>');
       return 0;
     }
 
@@ -412,6 +535,10 @@ export async function runCli(argv, io = {}) {
       }
       stdout('Extension config is valid.');
       return 0;
+    }
+
+    if (command === 'doctor') {
+      return await runDoctor(cwd, resolvedIo);
     }
 
     if (command === 'manifest') {

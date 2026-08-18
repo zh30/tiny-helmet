@@ -172,9 +172,16 @@ export function registerBackgroundHandlers(
     (_payload, sender) => ({ url: sender.tab?.url, id: sender.tab?.id })
   );
 
+  const removePingListener = addMessageListener(
+    chromeApi,
+    `${config.namespace}:ping`,
+    (payload: any) => ({ pong: true, timestamp: payload?.timestamp ?? Date.now() })
+  );
+
   return () => {
     unsubscribeStorage();
     removeOpenSidePanelListener();
     removeGetTabInfoListener();
+    removePingListener();
   };
 }

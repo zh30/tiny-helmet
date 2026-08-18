@@ -9,13 +9,22 @@ export function createRspackEntries(config, rootDir) {
   );
 }
 
-export function createHtmlPluginOptions(config, rootDir, minify) {
+export function createHtmlPluginOptions(config, rootDir, minify, options = {}) {
+  const vendorChunk = options.vendorChunk ?? 'vendor';
+  const splitVendor = options.splitVendor ?? false;
+
   return Object.entries(config.entries ?? {})
     .filter(([, entry]) => Boolean(entry.html))
-    .map(([name, entry]) => ({
-      template: path.resolve(rootDir, entry.html),
-      filename: entry.output,
-      chunks: [name],
-      minify,
-    }));
+    .map(([name, entry]) => {
+      const pluginOption = {
+        template: path.resolve(rootDir, entry.html),
+        filename: entry.output,
+        chunks: splitVendor ? [vendorChunk, name] : [name],
+        minify,
+      };
+      if (splitVendor) {
+        pluginOption.chunksSortMode = 'manual';
+      }
+      return pluginOption;
+    });
 }

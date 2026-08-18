@@ -16,26 +16,43 @@ function unique(values) {
   return Array.from(new Set(values));
 }
 
-export function generateManifest(config, packageMeta = {}) {
+export function generateManifest(config, options = {}) {
+  const target = options.target || process.env.EXTENSION_TARGET || 'chrome';
   const popup = getFirstEntryByKind(config, 'popup');
   const sidePanel = getFirstEntryByKind(config, 'side-panel');
-  const options = getFirstEntryByKind(config, 'options');
+  const optionsPage = getFirstEntryByKind(config, 'options');
   const newTab = getFirstEntryByKind(config, 'new-tab');
+  const devtools = getFirstEntryByKind(config, 'devtools');
   const background = getFirstEntryByKind(config, 'background');
-  const contentScripts = getEntriesByKind(config, 'content');
+  const contentScripts = [
+    ...getEntriesByKind(config, 'content'),
+    ...getEntriesByKind(config, 'injected'),
+  ];
   const webAccessibleResources = unique(config.webAccessibleResources ?? []);
 
   const manifest = {
     manifest_version: 3,
     name: messageRef(config.manifest.nameMessage),
-    version: packageMeta.version ?? config.manifest.version,
+    version: options.version ?? config.manifest.version,
     description: messageRef(config.manifest.descriptionMessage),
-    minimum_chrome_version: config.minimumChromeVersion,
     default_locale: config.defaultLocale,
     icons: config.manifest.icons,
     permissions: unique(config.permissions ?? []),
     host_permissions: unique(config.hostPermissions ?? []),
   };
+
+  if (target === 'chrome') {
+    manifest.minimum_chrome_version = config.minimumChromeVersion;
+  }
+
+  if (target === 'firefox') {
+    manifest.browser_specific_settings = {
+      gecko: {
+        id: config.firefox?.id ?? `${config.namespace}@crxkit.local`,
+        strict_min_version: config.firefox?.minVersion ?? '115.0',
+      },
+    };
+  }
 
   if (popup) {
     manifest.action = {
@@ -45,15 +62,22 @@ export function generateManifest(config, packageMeta = {}) {
   }
 
   if (sidePanel) {
-    manifest.side_panel = {
-      default_path: sidePanel.output,
-    };
+    if (target === 'firefox') {
+      manifest.sidebar_action = {
+        default_panel: sidePanel.output,
+        default_title: messageRef(config.manifest.nameMessage),
+      };
+    } else {
+      manifest.side_panel = {
+        default_path: sidePanel.output,
+      };
+    }
   }
 
-  if (options) {
+  if (optionsPage) {
     manifest.options_ui = {
-      page: options.output,
-      open_in_tab: options.openInTab ?? true,
+      page: optionsPage.output,
+      open_in_tab: optionsPage.openInTab ?? true,
     };
   }
 
@@ -63,18 +87,34 @@ export function generateManifest(config, packageMeta = {}) {
     };
   }
 
+  if (devtools) {
+    manifest.devtools_page = devtools.output;
+  }
+
   if (background) {
-    manifest.background = {
-      service_worker: background.output,
-    };
+    if (target === 'firefox') {
+      manifest.background = {
+        scripts: [background.output],
+      };
+    } else {
+      manifest.background = {
+        service_worker: background.output,
+      };
+    }
   }
 
   if (contentScripts.length > 0) {
-    manifest.content_scripts = contentScripts.map((entry) => ({
-      matches: entry.matches ?? ['<all_urls>'],
-      js: [entry.output],
-      run_at: entry.runAt ?? 'document_idle',
-    }));
+    manifest.content_scripts = contentScripts.map((entry) => {
+      const scriptDef = {
+        matches: entry.matches ?? ['<all_urls>'],
+        js: [entry.output],
+        run_at: entry.runAt ?? 'document_idle',
+      };
+      if (entry.world) {
+        scriptDef.world = entry.world;
+      }
+      return scriptDef;
+    });
   }
 
   if (webAccessibleResources.length > 0) {
@@ -85,6 +125,18 @@ export function generateManifest(config, packageMeta = {}) {
         matches: matches.length > 0 ? matches : ['<all_urls>'],
       },
     ];
+  }
+
+  if (config.commands) {
+    manifest.commands = config.commands;
+  }
+
+  if (config.omnibox) {
+    manifest.omnibox = config.omnibox;
+  }
+
+  if (config.declarativeNetRequest) {
+    manifest.declarative_net_request = config.declarativeNetRequest;
   }
 
   return manifest;
